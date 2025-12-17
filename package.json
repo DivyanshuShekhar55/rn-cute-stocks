@@ -1,0 +1,51 @@
+{
+  "name": "rn-cute-stocks",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/DivyanshuShekhar55/rn-cute-stocks#readme",
+  "bugs": {
+    "url": "https://github.com/DivyanshuShekhar55/rn-cute-stocks/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DivyanshuShekhar55/rn-cute-stocks.git"
+  },
+  "license": "MIT",
+  "author": "Divyanshu Shekhar",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    // add build scripts later
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.73.0",
+    "@shopify/react-native-skia": ">=1.0.0",
+    "react-native-reanimated": ">=3.0.0",
+    "@react-native-gesture-handler": ">=2.0.0",
+    "d3-array": ">=3.0.0",
+    "d3-scale": ">=4.0.0",
+    "d3-shape": ">=3.0.0"
+  },
+  "devDependencies": {
+    "react": "^18.0.0",
+    "react-native": "^0.73.0",
+    "@shopify/react-native-skia": "^1.0.0",
+    "react-native-reanimated": "^3.0.0",
+    "@react-native-gesture-handler": "^2.0.0",
+    "d3-array": "^3.0.0",
+    "d3-scale": "^4.0.0",
+    "d3-shape": "^3.0.0"
+  }
+}
