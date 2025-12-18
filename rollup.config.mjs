@@ -9,8 +9,7 @@ const extensions = [".js", ".ts", ".jsx", ".tsx"];
 const { root } = path.parse(process.cwd());
 
 export const entries = [
-  { find: /.*\/vanilla\.ts$/, replacement: "rn-cute-stocks/vanilla" },
-  { find: /.*\/react\.ts$/, replacement: "rn-cute-stocks/react" },
+  { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks/rn" },
 ];
 
 function isExternal(package_path) {
@@ -86,12 +85,12 @@ export default function (args) {
     config_str = config_str.slice("config-".length);
     // optionally remove the underscores from the config names
     // like src_utils becomes src/utils
-    config_str = config_name.replace(/_/g, "/");
+    config_str = config_str.replace(/_/g, "/");
   } else {
-    let config_str = "index";
+    config_str = "index";
   }
   return [
-    createCommonJSConfig(`src/${c}.js`, `dist/${c}.js`),
-    createESMConfig(`src/${c}.js`, `dist/esm/${c}.mjs`)
+    createCommonJSConfig(`src/${config_str}.js`, `dist/${config_str}.js`),
+    createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`)
   ];
 }
