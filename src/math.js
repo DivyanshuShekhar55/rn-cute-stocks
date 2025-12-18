@@ -1,0 +1,202 @@
+// FILE ka main goals kya hai ? =>
+// get the data
+// generate the skia-path for curve
+
+import {
+  curveBasis,
+  curveBumpX,
+  curveLinear,
+  curveMonotoneX,
+  curveNatural,
+  line,
+} from "d3-shape";
+
+import { max, min } from "d3-array";
+import { scaleLinear, scaleTime } from "d3-scale";
+
+function getStrategy(strategy) {
+  let curve;
+
+  // following are curves I believe are good matches for stock data
+  switch (strategy) {
+    case "curveBasis":
+      curve = curveBasis;
+      break;
+    case "curveBumpX":
+      curve = curveBumpX;
+      break;
+    case "curveLinear":
+      curve = curveLinear;
+      break;
+    case "curveMonotoneX":
+      curve = curveMonotoneX;
+      break;
+    case "natural":
+      curve = curveNatural;
+      break;
+    default:
+      curve = curveBasis;
+      console.warn(
+        "Invalid strategy, falling back to default bezier (curveBasis)"
+      );
+      break;
+  }
+  return curve;
+}
+
+function GenerateStringPath(strategy, data, canvas_width, canvas_height) {
+  const curve = getStrategy(strategy);
+  //   const data = getPeriodData(period);
+
+  const X_PADDING = Math.max(8, canvas_width * 0.05);
+  //   const CHART_HEIGHT = Math.round(canvas_width * 0.85);
+  const CHART_HEIGHT = canvas_height;
+
+  const min_x = min(data, (d) => {
+    return d.timestamp;
+  });
+  const max_x = max(data, (d) => {
+    return d.timestamp;
+  });
+
+  const x_func = scaleTime()
+    .domain([min_x, max_x])
+    .range([X_PADDING, canvas_width - X_PADDING]);
+  // now we can call like x(someTimestampValue)
+  // this is done while plotting the path like line().x((d) => x(d.timestamp))
+
+  const min_y = min(data, (d) => {
+    return d.price;
+  });
+  const max_y = max(data, (d) => {
+    return d.price;
+  });
+
+  const y_padding = (max_y - min_y) * 0.1;
+
+  const y_func = scaleLinear()
+    .domain([min_y - y_padding, max_y + y_padding])
+    .range([CHART_HEIGHT, 0]);
+
+  const str_path = line()
+    .x((d) => x_func(d.timestamp))
+    .y((d) => y_func(d.price))
+    .curve(curve)(data);
+
+  return {
+    str_path,
+    x_func,
+    y_func,
+    data,
+    x_range_min: X_PADDING,
+    x_range_max: canvas_width - X_PADDING,
+  };
+}
+
+let path_config = null;
+
+function GetYForX(x_pos, canvas_width, data, canvas_height, y_search_alogorithm) {
+  // IDEA BEHIND THIS FUNC. :
+  // the curve is not linear so find two nearby points for the given X (timestamp)
+  // then assume them as a linear line and get Y via linear interpolation
+  // also cache the path configs
+
+  if (!path_config || path_config.canvas_width !== canvas_width || path_config.data !==  data) {
+    path_config = {
+      ...GenerateStringPath("curveBumpX", data, canvas_width, canvas_height),
+      canvas_width
+    };
+  }
+
+  const { x_func, y_func, data, x_range_min, x_range_max } = path_config;
+
+  // keep x within bounds by clamping it
+  let clamped_x_pos = Math.max(x_range_min, Math.min(x_range_max, x_pos));
+
+  let res = searchStrategy(
+    y_search_alogorithm,
+    clamped_x_pos,
+    x_func,
+    data,
+    y_func
+  );
+
+  return res;
+}
+
+const searchStrategy = (
+  search_strategy,
+  clamped_x_pos,
+  x_func,
+  data,
+  y_func
+) => {
+  let res;
+  switch (search_strategy) {
+    case "binarySearchWithInterpolation":
+      res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+      break;
+
+    // might add more strategies later
+    // one might be using lookup tables
+    // as for less data points interpolation fails
+
+    default:
+      console.warn(
+        "invalid search strategy, falling back to binary with interpolation"
+      );
+      res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+      break;
+  }
+
+  return res;
+};
+
+const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
+  let timestamp = x_func.invert(clamped_x_pos).getTime();
+
+  let left_idx = 0;
+
+  if (timestamp <= data[0].timestamp) {
+    const p = data[0].price;
+    return { y_coord: y_func(p), real_price: p };
+  }
+  if (timestamp >= data[data.length - 1].timestamp) {
+    const p = data[data.length - 1].price;
+    return { y_coord: y_func(p), real_price: p };
+  }
+
+  // Binary search (could have gone with linear search as well but lol why not better)
+  let left = 0;
+  let right = data.length - 1;
+
+  while (left < right - 1) {
+    const mid = Math.floor((left + right) / 2);
+    if (data[mid].timestamp <= timestamp) {
+      left = mid;
+    } else {
+      right = mid;
+    }
+  }
+
+  if (left >= data.length - 1) left = data.length - 2;
+
+  left_idx = left;
+
+  const left_point = data[left_idx];
+  const right_point = data[left_idx + 1];
+
+  // do Linear interpolation here
+  const denominator = right_point.timestamp - left_point.timestamp;
+  const ratio =
+    denominator !== 0 ? (timestamp - left_point.timestamp) / denominator : 0;
+  const y_val =
+    left_point.price + ratio * (right_point.price - left_point.price);
+
+  let real_price = y_val;
+  console.log("real price: ", real_price);
+  let y_coord = y_func(y_val);
+  return { y_coord, real_price };
+};
+
+export { GenerateStringPath, GetYForX };
