@@ -9,7 +9,8 @@ const extensions = [".js", ".ts", ".jsx", ".tsx"];
 const { root } = path.parse(process.cwd());
 
 export const entries = [
-  { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks/rn" },
+  { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks" },
+  { find: /.*\/math\.js$/, replacement: "rn-cute-stocks/math" }
 ];
 
 function isExternal(package_path) {
@@ -30,7 +31,7 @@ function createESMConfig(input, output) {
   return {
     input,
     output: { file: output, format: "esm" },
-    external:isExternal,
+    external: isExternal,
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
       resolve({ extensions }),
@@ -61,7 +62,7 @@ function createCommonJSConfig(input, output) {
   return {
     input,
     output: { file: output, format: "cjs" },
-    external:isExternal,
+    external: isExternal,
     // plugins are middlewares that tell abt step wise transformation of our code
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
@@ -91,6 +92,6 @@ export default function (args) {
   }
   return [
     createCommonJSConfig(`src/${config_str}.js`, `dist/${config_str}.js`),
-    createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`)
+    createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`),
   ];
 }
