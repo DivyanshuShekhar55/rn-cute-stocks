@@ -39,13 +39,18 @@
     "d3-shape": ">=3.0.0"
   },
   "devDependencies": {
-    "react": "^18.0.0",
-    "react-native": "^0.73.0",
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-replace": "^5.0.0",
     "@shopify/react-native-skia": "^1.0.0",
-    "react-native-reanimated": "^3.0.0",
-    "react-native-gesture-handler": "^2.0.0",
     "d3-array": "^3.0.0",
     "d3-scale": "^4.0.0",
-    "d3-shape": "^3.0.0"
+    "d3-shape": "^3.0.0",
+    "react": "^18.0.0",
+    "react-native": "^0.73.0",
+    "react-native-gesture-handler": "^2.0.0",
+    "react-native-reanimated": "^3.0.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-esbuild": "^6.0.0"
   }
 }
