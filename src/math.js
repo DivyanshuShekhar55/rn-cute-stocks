@@ -101,14 +101,20 @@ function GetYForX(x_pos, canvas_width, data, canvas_height, y_search_alogorithm)
   // then assume them as a linear line and get Y via linear interpolation
   // also cache the path configs
 
-  if (!path_config || path_config.canvas_width !== canvas_width || path_config.data !==  data) {
+  if (
+    !path_config || 
+    path_config.canvas_width !== canvas_width || 
+    path_config.canvas_height !== canvas_height ||
+    path_config.data.length !== data.length
+  ) {
     path_config = {
       ...GenerateStringPath("curveBumpX", data, canvas_width, canvas_height),
-      canvas_width
+      canvas_width,
+      canvas_height
     };
   }
 
-  const { x_func, y_func, data, x_range_min, x_range_max } = path_config;
+  const { x_func, y_func, x_range_min, x_range_max } = path_config;
 
   // keep x within bounds by clamping it
   let clamped_x_pos = Math.max(x_range_min, Math.min(x_range_max, x_pos));
@@ -194,7 +200,6 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
     left_point.price + ratio * (right_point.price - left_point.price);
 
   let real_price = y_val;
-  console.log("real price: ", real_price);
   let y_coord = y_func(y_val);
   return { y_coord, real_price };
 };
