@@ -14,11 +14,11 @@ import {
 import { max, min } from "d3-array";
 import { scaleLinear, scaleTime } from "d3-scale";
 
-function getStrategy(strategy) {
+function getCurve(curveType) {
   let curve;
 
   // following are curves I believe are good matches for stock data
-  switch (strategy) {
+  switch (curveType) {
     case "curveBasis":
       curve = curveBasis;
       break;
@@ -37,15 +37,15 @@ function getStrategy(strategy) {
     default:
       curve = curveBasis;
       console.warn(
-        "Invalid strategy, falling back to default bezier (curveBasis)"
+        "Invalid curve, falling back to default bezier (curveBasis)"
       );
       break;
   }
   return curve;
 }
 
-function GenerateStringPath(strategy, data, canvas_width, canvas_height) {
-  const curve = getStrategy(strategy);
+function GenerateStringPath(curveType, data, canvas_width, canvas_height) {
+  const curve = getCurve(curveType);
   //   const data = getPeriodData(period);
 
   const X_PADDING = Math.max(8, canvas_width * 0.05);
