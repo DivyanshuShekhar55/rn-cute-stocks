@@ -24,6 +24,10 @@ function getESBuild() {
   return esbuild({
     minify: true,
     target: "es2018",
+    jsx:"automatic",
+    loaders:{
+      ".js":"jsx",
+    }
   });
 }
 // create the es-module func
