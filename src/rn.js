@@ -139,10 +139,8 @@ const Cursor = ({ xPos, yPos }) => {
 
 const styles = StyleSheet.create({
   home__main: {
-    paddingVertical: 50,
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
   },
   home__price: {
     color: "#000",
