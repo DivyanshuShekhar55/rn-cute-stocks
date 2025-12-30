@@ -40,7 +40,11 @@ export const StockCharts = ({
   const xPos = useSharedValue(init_x);
   const yPos = useSharedValue(init_y);
   const price_animated_val = useSharedValue(data[0].price);
-  const [priceText, setPriceText] = useState(data[0].price);
+
+  // not using toFixed() in next line would treat the init pricxe as number
+  // casuing "all text must be rendered within <Text> component error"
+  // this is cause it returns a number, toFixed() returns a string
+  const [priceText, setPriceText] = useState(data[0].price.toFixed(2));
 
   useDerivedValue(() => {
     const txt = price_animated_val.value.toFixed(2);
@@ -89,7 +93,7 @@ export const StockCharts = ({
           {skpath && (
             <Path
               path={skpath}
-              style={curveFill} 
+              style={curveFill}
               strokeWidth={curveStrokeWidth}
               color={"#fff"} // i forgot what's this :(
             >
