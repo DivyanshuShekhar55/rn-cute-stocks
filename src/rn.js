@@ -139,7 +139,6 @@ const Cursor = ({ xPos, yPos }) => {
 
 const styles = StyleSheet.create({
   home__main: {
-    flex: 1,
     paddingVertical: 50,
     alignItems: "center",
     backgroundColor: "#fff",
