@@ -21,9 +21,10 @@ export const StockCharts = ({
   width,
   height,
   chartData,
+  chartContainerStyles,
   priceTextStyles,
   curveType = "curveBasis",
-  colors = ["#fff"],
+  colors = ["#000"],
   cursorComponent,
   curveStrokeWidth = 2,
   curveFill = "stroke",
@@ -74,7 +75,7 @@ export const StockCharts = ({
   }
 
   return (
-    <View style={styles.home__main}>
+    <View style={[styles.home__main, chartContainerStyles]}>
       <Text style={[styles.home__price, priceTextStyles]}>${priceText}</Text>
 
       <GestureDetector gesture={pan}>
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 50,
     alignItems: "center",
-    backgroundColor: "#181818",
+    backgroundColor: "#fff",
     paddingHorizontal: 20,
   },
   home__price: {
