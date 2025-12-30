@@ -13,32 +13,59 @@ export const entries = [
   { find: /.*\/math\.js$/, replacement: "rn-cute-stocks/math" }
 ];
 
+// List of peer dependencies that should NEVER be bundled
+const peerDependencies = [
+  'react',
+  'react-native',
+  '@shopify/react-native-skia',
+  'react-native-reanimated',
+  'react-native-gesture-handler',
+  'd3-array',
+  'd3-scale',
+  'd3-shape',
+];
+
 function isExternal(package_path) {
+  // Always treat peer dependencies as external
+  if (peerDependencies.some(dep => 
+    package_path === dep || package_path.startsWith(`${dep}/`)
+  )) {
+    return true;
+  }
+  
   // tells whether to bundle a package or not
-  // dont bundle if like import "linear" from "d3-scale" (id=d3-scale)
+  // dont bundle if like import "linear" from "d3-scale" (package_path=d3-scale)
   // bundle if starts like "./index" or C://...index.js
   return !(package_path.startsWith(".") || package_path.startsWith(root));
 }
 
 function getESBuild() {
   return esbuild({
-    minify: true,
-    target: "es2018",
-    jsx:"automatic",
-    loaders:{
-      ".js":"jsx",
+    minify: false, 
+    target: "es2017", 
+    jsx: "automatic",
+    loaders: {
+      ".js": "jsx",
     }
   });
 }
+
 // create the es-module func
 function createESMConfig(input, output) {
   return {
     input,
-    output: { file: output, format: "esm" },
+    output: { 
+      file: output, 
+      format: "esm",
+      sourcemap: true // Added for debugging
+    },
     external: isExternal,
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
-      resolve({ extensions }),
+      resolve({ 
+        extensions,
+        preferBuiltins: false // Important for React Native
+      }),
       replace({
         // no env used in this codebase as of writing it, but following is for making codebase future-proof
         // makes the library useful for both users of libraries Node (which uses process.env.NODE_ENV)
@@ -65,12 +92,19 @@ function createESMConfig(input, output) {
 function createCommonJSConfig(input, output) {
   return {
     input,
-    output: { file: output, format: "cjs" },
+    output: { 
+      file: output, 
+      format: "cjs",
+      sourcemap: true // Added for debugging
+    },
     external: isExternal,
     // plugins are middlewares that tell abt step wise transformation of our code
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
-      resolve({ extensions }),
+      resolve({ 
+        extensions,
+        preferBuiltins: false // Important for React Native
+      }),
       replace({
         "import.meta.env?.MODE": "process.env.NODE_ENV",
         delimiters: ["\\b", "\\b(?!(\\.|/))"],
