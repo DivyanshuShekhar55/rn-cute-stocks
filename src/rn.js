@@ -140,7 +140,7 @@ const Cursor = ({ xPos, yPos }) => {
 const styles = StyleSheet.create({
   home__main: {
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
   },
   home__price: {
     color: "#000",
