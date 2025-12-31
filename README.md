@@ -2,6 +2,8 @@
 
 A performant, interactive stock chart component for React Native. Built with Skia and Reanimated for smooth animations and D3 for precise calculations.
 
+<img src="./readme-main.png">
+
 ## Features
 
 - **Smooth**: Uses Skia and Reanimated to offload animations to the UI thread
