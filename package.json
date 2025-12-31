@@ -13,6 +13,23 @@
   "license": "MIT",
   "author": "Divyanshu Shekhar",
   "type": "commonjs",
+    "keywords": [
+    "react-native",
+    "stocks",
+    "graphs",
+    "charts",
+    "stock-charts",
+    "financial-charts",
+    "skia",
+    "react-native-skia",
+    "reanimated",
+    "d3",
+    "line-chart",
+    "finance",
+    "trading",
+    "visualization",
+    "mobile"
+  ],
   "main": "dist/index.js",
   "module": "dist/esm/index.mjs",
   "exports": {
