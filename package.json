@@ -1,6 +1,6 @@
 {
   "name": "rn-cute-stocks",
-  "version": "1.0.1-beta.5",
+  "version": "1.0.1",
   "description": "",
   "homepage": "https://github.com/DivyanshuShekhar55/rn-cute-stocks#readme",
   "bugs": {
@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "Divyanshu Shekhar",
   "type": "commonjs",
-    "keywords": [
+  "keywords": [
     "react-native",
     "stocks",
     "graphs",
