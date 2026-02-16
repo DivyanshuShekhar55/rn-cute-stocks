@@ -10,7 +10,8 @@ const { root } = path.parse(process.cwd());
 
 export const entries = [
   { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks" },
-  { find: /.*\/math\.js$/, replacement: "rn-cute-stocks/math" }
+  { find: /.*\/math\.js$/, replacement: "rn-cute-stocks/math" },
+  { find: /.*\/candlestick\.js$/, replacement: "rn-cute-stocks/candlestick" }
 ];
 
 // List of peer dependencies that should NEVER be bundled
@@ -20,6 +21,7 @@ const peerDependencies = [
   '@shopify/react-native-skia',
   'react-native-reanimated',
   'react-native-gesture-handler',
+  'react-native-worklets',
   'd3-array',
   'd3-scale',
   'd3-shape',
