@@ -204,4 +204,11 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   return { y_coord, real_price };
 };
 
-export { GenerateStringPath, GetYForX };
+// Find the domain (min and max values) from candlestick data
+const FindDomain = (data) => {
+  let mini = min(data, (d) => d.low);
+  let maxi = max(data, (d) => d.high);
+  return [mini, maxi];
+}
+
+export { GenerateStringPath, GetYForX, FindDomain };
