@@ -127,11 +127,20 @@ export default function (args) {
     // optionally remove the underscores from the config names
     // like src_utils becomes src/utils
     config_str = config_str.replace(/_/g, "/");
-  } else {
-    config_str = "index";
+    return [
+      createCommonJSConfig(`src/${config_str}.js`, `dist/${config_str}.js`),
+      createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`),
+    ];
   }
+  
+  // Build all entry points by default
   return [
-    createCommonJSConfig(`src/${config_str}.js`, `dist/${config_str}.js`),
-    createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`),
+    // Main entry (index)
+    createCommonJSConfig('src/index.js', 'dist/index.js'),
+    createESMConfig('src/index.js', 'dist/esm/index.mjs'),
+    
+    // Candlestick entry
+    createCommonJSConfig('src/candlestick.js', 'dist/candlestick.js'),
+    createESMConfig('src/candlestick.js', 'dist/esm/candlestick.mjs'),
   ];
 }
