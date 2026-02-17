@@ -12,9 +12,9 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
   useDerivedValue,
   useSharedValue,
-  runOnJS,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from 'react-native-worklets'
 import { useState } from "react";
 
 export const LineChart = ({
@@ -49,7 +49,7 @@ export const LineChart = ({
 
   useDerivedValue(() => {
     const txt = price_animated_val.value.toFixed(2);
-    runOnJS(setPriceText)(txt);
+    scheduleOnRN(setPriceText, txt)
   }, [price_animated_val]);
 
   const updateY = (clamped_x) => {
@@ -67,7 +67,7 @@ export const LineChart = ({
     const clamped = Math.max(x_range_min, Math.min(x_range_max, raw_x));
     xPos.value = clamped;
 
-    runOnJS(updateY)(clamped);
+    scheduleOnRN(updateY, clamped)
   });
 
   if (!chartData || chartData.length === 0) {
