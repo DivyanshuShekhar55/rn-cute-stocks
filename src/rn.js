@@ -17,7 +17,7 @@ import {
 } from "react-native-reanimated";
 import { useState } from "react";
 
-export const StockCharts = ({
+export const LineChart = ({
   width,
   height,
   chartData,

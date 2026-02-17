@@ -60,7 +60,7 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle, wick
     )
 }
 
-const ChartScrub = ({
+const CandleStickChart = ({
     width,
     height,
     data,
@@ -536,4 +536,4 @@ const AxisLine = ({ axisLinePathEffect, axisLineColor, x1, y1, x2, y2 }) => {
     )
 }
 
-export { ChartScrub }
+export { CandleStickChart }

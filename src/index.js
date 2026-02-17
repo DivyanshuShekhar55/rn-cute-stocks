@@ -1,3 +1,3 @@
-export { StockCharts } from "./rn";
+export { LineChart } from "./rn";
 export { GenerateStringPath, GetYForX, FindDomain } from "./math";
-export { ChartScrub } from "./candlestick";
+export { CandleStickChart } from "./candlestick";

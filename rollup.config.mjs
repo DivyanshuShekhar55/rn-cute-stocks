@@ -10,7 +10,6 @@ const { root } = path.parse(process.cwd());
 
 export const entries = [
   { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks" },
-  { find: /.*\/math\.js$/, replacement: "rn-cute-stocks/math" },
   { find: /.*\/candlestick\.js$/, replacement: "rn-cute-stocks/candlestick" }
 ];
 
