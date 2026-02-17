@@ -162,7 +162,6 @@ const ChartScrub = ({
         })
         .onUpdate((evt) => {
             scale.value = savedScale.value * evt.scale
-            console.log("scale", evt.scale)
         })
         .onEnd(() => {
             // Calculate new visible count based on accumulated scale
@@ -172,8 +171,6 @@ const ChartScrub = ({
                 minVisibleCandles,
                 Math.min(maxVisibleCandles, newCount)
             )
-
-            console.log("scale on end", clampedCount)
 
             // Update states to re-render with new visible range
             // Keep the end position, adjust start based on new count
