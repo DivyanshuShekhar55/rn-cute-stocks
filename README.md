@@ -264,7 +264,8 @@ The candlestick chart supports three different gestures:
 **2. Two Fingers (Zoom)**
 - Pinch with two fingers to zoom in and out
 - Zoom is constrained between `minVisibleCandles` and `maxVisibleCandles`
-- Zooms around the right edge (most recent candles stay visible)
+- Zooms around the gesture's focal point (most recent candles stay visible)
+- Live zoom (however this consumes some resources on JS thread as updates to react states happen)
 - Useful for analyzing specific time periods or getting an overview
 
 **3. Three Fingers (Pan/Scroll)**
