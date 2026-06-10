@@ -1,4 +1,4 @@
-/* global process*/
+/* global process */
 import path from "path";
 import alias from "@rollup/plugin-alias";
 import resolve from "@rollup/plugin-node-resolve";
@@ -8,80 +8,79 @@ import esbuild from "rollup-plugin-esbuild";
 const extensions = [".js", ".ts", ".jsx", ".tsx"];
 const { root } = path.parse(process.cwd());
 
-export const entries = [
-  { find: /.*\/rn\.js$/, replacement: "rn-cute-stocks" },
-  { find: /.*\/candlestick\.js$/, replacement: "rn-cute-stocks/candlestick" }
-];
+// Path aliases — update these if you add internal package aliases later
+export const entries = [];
 
-// List of peer dependencies that should NEVER be bundled
+// Peer dependencies — never bundled, must be installed by the consumer
 const peerDependencies = [
-  'react',
-  'react-native',
-  '@shopify/react-native-skia',
-  'react-native-reanimated',
-  'react-native-gesture-handler',
-  'react-native-worklets',
-  'd3-array',
-  'd3-scale',
-  'd3-shape',
+  "react",
+  "react-native",
+  "@shopify/react-native-skia",
+  "react-native-reanimated",
+  "react-native-gesture-handler",
+  "react-native-worklets",
+  "d3-array",
+  "d3-scale",
+  "d3-shape",
 ];
 
-function isExternal(package_path) {
-  // Always treat peer dependencies as external
-  if (peerDependencies.some(dep => 
-    package_path === dep || package_path.startsWith(`${dep}/`)
-  )) {
+// Returns true if the import should be treated as external (not bundled)
+// Bundle only relative imports (./foo) or absolute disk paths
+// Everything else — node_modules, peer deps — stays external
+function isExternal(packagePath) {
+  if (
+    peerDependencies.some(
+      (dep) => packagePath === dep || packagePath.startsWith(`${dep}/`),
+    )
+  ) {
     return true;
   }
-  
-  // tells whether to bundle a package or not
-  // dont bundle if like import "linear" from "d3-scale" (package_path=d3-scale)
-  // bundle if starts like "./index" or C://...index.js
-  return !(package_path.startsWith(".") || package_path.startsWith(root));
+  return !(packagePath.startsWith(".") || packagePath.startsWith(root));
 }
 
+// esbuild handles TS/TSX transpilation + JSX transform
+// minify=false keeps output readable for consumers debugging issues
+// target=es2017 is safe for all modern RN versions
 function getESBuild() {
   return esbuild({
-    minify: false, 
-    target: "es2017", 
+    minify: false,
+    target: "es2017",
     jsx: "automatic",
     loaders: {
       ".js": "jsx",
-    }
+      ".ts": "ts",
+      ".tsx": "tsx",
+    },
   });
 }
 
-// create the es-module func
+// ESM build — used by bundlers (Metro, webpack) that support tree-shaking
 function createESMConfig(input, output) {
   return {
     input,
-    output: { 
-      file: output, 
+    output: {
+      file: output,
       format: "esm",
-      sourcemap: true // Added for debugging
+      sourcemap: true,
     },
     external: isExternal,
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
-      resolve({ 
+      resolve({
         extensions,
-        preferBuiltins: false // Important for React Native
+        preferBuiltins: false, // important for React Native — no Node built-ins
       }),
       replace({
-        // no env used in this codebase as of writing it, but following is for making codebase future-proof
-        // makes the library useful for both users of libraries Node (which uses process.env.NODE_ENV)
-        // also for some frameworks like Vite where we use import.meta.env?.MODE
+        // make the library work in both Node (process.env.NODE_ENV)
+        // and Vite-style bundlers (import.meta.env.MODE)
+        // .mjs output keeps import.meta.env as-is, .js output converts to process.env
         ...(output.endsWith(".js")
-          ? {
-              "import.meta.env?.MODE": "process.env.NODE_ENV",
-            }
+          ? { "import.meta.env?.MODE": "process.env.NODE_ENV" }
           : {
               "import.meta.env?.MODE":
                 "(import.meta.env ? import.meta.env.MODE : undefined)",
             }),
-
-        // replace the full word only
-        // also don't touch if there is an assignment to the value happening
+        // replace full words only, don't touch assignments
         delimiters: ["\\b", "\\b(?!(\\.|/))"],
         preventAssignment: true,
       }),
@@ -90,21 +89,21 @@ function createESMConfig(input, output) {
   };
 }
 
+// CJS build — used by Jest, older Metro configs, and require()-based consumers
 function createCommonJSConfig(input, output) {
   return {
     input,
-    output: { 
-      file: output, 
+    output: {
+      file: output,
       format: "cjs",
-      sourcemap: true // Added for debugging
+      sourcemap: true,
     },
     external: isExternal,
-    // plugins are middlewares that tell abt step wise transformation of our code
     plugins: [
       alias({ entries: entries.filter((entry) => !entry.find.test(input)) }),
-      resolve({ 
+      resolve({
         extensions,
-        preferBuiltins: false // Important for React Native
+        preferBuiltins: false,
       }),
       replace({
         "import.meta.env?.MODE": "process.env.NODE_ENV",
@@ -117,29 +116,33 @@ function createCommonJSConfig(input, output) {
 }
 
 export default function (args) {
-  let args_key_arr = Object.keys(args);
-  let config_str = args_key_arr.find((key) => key.startsWith("config-"));
+  let argsKeyArr = Object.keys(args);
+  let configStr = argsKeyArr.find((key) => key.startsWith("config-"));
 
-  if (config_str) {
+  if (configStr) {
     // extract the config name after 'config-'
-    config_str = config_str.slice("config-".length);
-    // optionally remove the underscores from the config names
-    // like src_utils becomes src/utils
-    config_str = config_str.replace(/_/g, "/");
+    // e.g. --config-src_utils → src/utils
+    configStr = configStr.slice("config-".length);
+    configStr = configStr.replace(/_/g, "/");
     return [
-      createCommonJSConfig(`src/${config_str}.js`, `dist/${config_str}.js`),
-      createESMConfig(`src/${config_str}.js`, `dist/esm/${config_str}.mjs`),
+      createCommonJSConfig(`src/${configStr}.ts`, `dist/${configStr}.js`),
+      createESMConfig(`src/${configStr}.ts`, `dist/esm/${configStr}.mjs`),
     ];
   }
-  
-  // Build all entry points by default
+
+  // Default: build the single main entry point
+  // All charts are re-exported from src/index.ts via the barrel file
   return [
-    // Main entry (index)
-    createCommonJSConfig('src/index.js', 'dist/index.js'),
-    createESMConfig('src/index.js', 'dist/esm/index.mjs'),
-    
-    // Candlestick entry
-    createCommonJSConfig('src/candlestick.js', 'dist/candlestick.js'),
-    createESMConfig('src/candlestick.js', 'dist/esm/candlestick.mjs'),
+    createCommonJSConfig("src/index.ts", "dist/index.js"),
+    createESMConfig("src/index.ts", "dist/esm/index.mjs"),
+
+    // this one so that dts works
+    // dts makes sure every type is exported well, else we get all types as 'any'
+    {
+      input: "src/index.ts",
+      output: { file: "dist/index.d.ts", format: "esm" },
+      external: isExternal,
+      plugins: [dts()],
+    },
   ];
 }
