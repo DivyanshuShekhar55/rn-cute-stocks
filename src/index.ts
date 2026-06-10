@@ -10,6 +10,7 @@ export {default as LineChart} from "./LineChart"
 export {default as TimeSeriesChart} from "./TimeSeriesChart"
 
 // Export types
+
 export * from "./CandleStickChart/types"
 export * from "./HorizontalBarChart/types"
 export * from "./VerticalBarChart/types"
@@ -17,3 +18,7 @@ export * from "./PieChart/types"
 export * from "./LineChart/types"
 export * from "./TimeSeriesChart/types"
 
+// Export shared
+// maths and shared/constants are for internal implementation only
+
+export * from "./shared/types"
