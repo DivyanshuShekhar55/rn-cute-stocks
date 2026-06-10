@@ -1,9 +1,28 @@
 import type { StyleProp, ViewStyle, TextStyle } from "react-native";
-import type { SharedValue } from "react-native-reanimated";
-import type { TimeSeriesDataPoint, CurveType, SearchAlgorithm } from "../math";
-import { CursorProps } from "../shared/types";
+import { CursorProps, CurveType, SearchAlgorithm } from "../shared/types";
+import { scaleLinear, scaleTime } from "d3-scale";
 
 // Types
+
+// types explicitly fot the timeseries chart
+export interface TimeSeriesDataPoint {
+  x: number; // unix ms
+  y: number;
+}
+
+export interface TimeSeriesPathResult {
+  strPath: string | null;
+  xFunc: ReturnType<typeof scaleTime>;
+  yFunc: ReturnType<typeof scaleLinear<number, number>>;
+  data: TimeSeriesDataPoint[];
+  xRangeMin: number;
+  xRangeMax: number;
+}
+
+export interface TimerSeriesPathConfig extends TimeSeriesPathResult {
+  canvasWidth: number;
+  canvasHeight: number;
+}
 
 export interface TimeSeriesChartProps {
   width: number;

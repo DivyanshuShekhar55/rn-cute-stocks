@@ -1,6 +1,6 @@
 /**
  * these are types shared by one or more charts
-**/
+ **/
 
 import { SharedValue } from "react-native-reanimated";
 
@@ -26,4 +26,18 @@ export interface BarDataItem {
 export interface CursorProps {
   xPos: SharedValue<number>;
   yPos: SharedValue<number>;
+}
+
+export type CurveType =
+  | "curveBasis"
+  | "curveBumpX"
+  | "curveLinear"
+  | "curveMonotoneX"
+  | "natural";
+
+export type SearchAlgorithm = "binarySearchWithInterpolation";
+
+export interface YForXResult {
+  yCoord: number;
+  actualVal: number;
 }

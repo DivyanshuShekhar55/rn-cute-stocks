@@ -9,67 +9,10 @@ import {
 
 import { max, min } from "d3-array";
 import { scaleLinear, scalePoint, scaleTime } from "d3-scale";
-
-export type CurveType =
-  | "curveBasis"
-  | "curveBumpX"
-  | "curveLinear"
-  | "curveMonotoneX"
-  | "natural";
-
-export type SearchAlgorithm = "binarySearchWithInterpolation";
-
-export interface YForXResult {
-  yCoord: number;
-  actualVal: number;
-}
-
-export interface CandleStickPoint {
-  low: number;
-  high: number;
-}
-
-// types explicitly fot the timeseries chart
-export interface TimeSeriesDataPoint {
-  x: number; // unix ms
-  y: number;
-}
-
-interface TimeSeriesPathResult {
-  strPath: string | null;
-  xFunc: ReturnType<typeof scaleTime>;
-  yFunc: ReturnType<typeof scaleLinear<number, number>>;
-  data: TimeSeriesDataPoint[];
-  xRangeMin: number;
-  xRangeMax: number;
-}
-
-interface TimerSeriesPathConfig extends TimeSeriesPathResult {
-  canvasWidth: number;
-  canvasHeight: number;
-}
-
-// types for the linear chart (normal one)
-// can have x label of any type user passes in, not strictly timestamp
-export interface LineDataPoint {
-  x: string;
-  y: number;
-}
-
-interface LineChartPathResult {
-  strPath: string | null;
-  xFunc: ReturnType<typeof scalePoint<string>>;
-  yFunc: ReturnType<typeof scaleLinear<number, number>>;
-  data: LineDataPoint[];
-  xRangeMin: number;
-  xRangeMax: number;
-  step: number;
-}
-
-interface LineChartPathConfig extends LineChartPathResult {
-  canvasWidth: number;
-  canvasHeight: number;
-}
+import { CurveType, SearchAlgorithm, YForXResult } from "../shared/types";
+import { TimerSeriesPathConfig, TimeSeriesDataPoint } from "../TimeSeriesChart/types";
+import { Candle } from "../CandleStickChart/types";
+import { LineChartPathConfig, LineChartPathResult, LineDataPoint } from "../LineChart/types";
 
 function getCurve(curveType: CurveType) {
   let curve;
@@ -301,7 +244,7 @@ const binarySearch_TimeSeries = (
 };
 
 // Find the domain (min and max values) from candlestick data
-const FindDomain = (data: CandleStickPoint[]): [number, number] => {
+const FindDomain = (data: Candle[]): [number, number] => {
   let mini = min(data, (d) => d.low) ?? 0;
   let maxi = max(data, (d) => d.high) ?? 1;
   return [mini, maxi];

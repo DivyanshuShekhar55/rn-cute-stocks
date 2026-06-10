@@ -1,9 +1,30 @@
-import { SharedValue } from "react-native-reanimated";
-import { CurveType, LineDataPoint } from "../math";
 import { StyleProp, TextStyle, ViewStyle } from "react-native";
-import { CursorProps } from "../shared/types";
+import { CursorProps, CurveType } from "../shared/types";
+import { scaleLinear, scalePoint } from "d3-scale";
 
 // Types
+
+// types for the linear chart (normal one)
+// can have x label of any type user passes in, not strictly timestamp
+export interface LineDataPoint {
+  x: string;
+  y: number;
+}
+
+export interface LineChartPathResult {
+  strPath: string | null;
+  xFunc: ReturnType<typeof scalePoint<string>>;
+  yFunc: ReturnType<typeof scaleLinear<number, number>>;
+  data: LineDataPoint[];
+  xRangeMin: number;
+  xRangeMax: number;
+  step: number;
+}
+
+export interface LineChartPathConfig extends LineChartPathResult {
+  canvasWidth: number;
+  canvasHeight: number;
+}
 
 export interface LineChartProps {
   width: number;
