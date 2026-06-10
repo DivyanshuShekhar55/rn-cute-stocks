@@ -4,6 +4,7 @@ import alias from "@rollup/plugin-alias";
 import resolve from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import esbuild from "rollup-plugin-esbuild";
+import dts from "rollup-plugin-dts"; 
 
 const extensions = [".js", ".ts", ".jsx", ".tsx"];
 const { root } = path.parse(process.cwd());
