@@ -7,8 +7,7 @@ import {
   Skia,
   Circle,
 } from "@shopify/react-native-skia";
-import { GenerateStringPath_TimeSeries, GetYForX_TimeSeries } from "./math";
-import type { TimeSeriesDataPoint, CurveType, SearchAlgorithm } from "./math";
+import { GenerateStringPath_TimeSeries, GetYForX_TimeSeries } from "../math";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
   useDerivedValue,
@@ -17,28 +16,8 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useState } from "react";
-import type { StyleProp, ViewStyle, TextStyle } from "react-native";
-import type { SharedValue } from "react-native-reanimated";
+import { CursorProps, TimeSeriesChartProps } from "./types";
 
-// Types
-interface CursorProps {
-  xPos: SharedValue<number>;
-  yPos: SharedValue<number>;
-}
-
-interface TimeSeriesChartProps {
-  width: number;
-  height: number;
-  chartData: TimeSeriesDataPoint[];
-  chartContainerStyles?: StyleProp<ViewStyle>;
-  priceTextStyles?: StyleProp<TextStyle>;
-  curveType?: CurveType;
-  colors?: string[];
-  cursorComponent?: (props: CursorProps) => React.ReactElement;
-  curveStrokeWidth?: number;
-  curveFill?: "stroke" | "fill";
-  ySearch?: SearchAlgorithm;
-}
 
 // Component
 

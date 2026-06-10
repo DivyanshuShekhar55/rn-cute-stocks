@@ -15,70 +15,9 @@ import { scaleBand, scaleLinear } from "d3-scale";
 import { max } from "d3-array";
 import { Canvas, Group, Rect, RoundedRect } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-
-// Types 
-
-/* User data shall be of form :
-[{x:label, y:num}], we extract x and y labels from it
-*/
-export interface BarDataItem {
-  x: string;
-  y: number;
-}
-
-export type AnimationType = "spring" | "linear" | "none";
-
-export interface SpringAnimationConfig {
-  mass?: number;
-  damping?: number;
-  stiffness?: number;
-}
-
-export interface LinearAnimationConfig {
-  duration?: number;
-}
-
-export type AnimationConfig = SpringAnimationConfig | LinearAnimationConfig;
-
-interface BarChartProps {
-  width: number;
-  height: number;
-  data: BarDataItem[];
-  color?: string;
-  activeColor?: string;
-  barGap?: number;
-  bend?: number;
-  numYLabels?: number;
-  // if true, bars can scroll horizontally, y-axis stays sticky
-  // by default is false
-  scrollable?: boolean;
-  // only used if scrollable=true, default is 25px
-  // we try to adjust as many bars possible in the given width of screen
-  // the bars of size are minBarWidth
-  minBarWidth?: number;
-  // default animation type is spring
-  animationType?: AnimationType;
-  /**
-   * Config passed to the animation driver.
-   * For "spring": { mass, damping, stiffness }
-   * For "linear": { duration }
-   * Ignored when animationType is "none".
-   */
-  animationConfig?: AnimationConfig;
-}
-
-// Defaults
-
-// if the user doesn't give animationConfig we fallback to defaults
-const DEFAULT_SPRING_CONFIG: Required<SpringAnimationConfig> = {
-  mass: 1,
-  damping: 5,
-  stiffness: 150,
-};
-
-const DEFAULT_LINEAR_CONFIG: Required<LinearAnimationConfig> = {
-  duration: 300,
-};
+import { LinearAnimationConfig, SpringAnimationConfig } from "../shared/types";
+import { BarChartProps } from "./types";
+import { DEFAULT_LINEAR_CONFIG, DEFAULT_SPRING_CONFIG } from "../shared/constants";
 
 const MIN_BAR_WIDTH_DEFAULT = 25;
 

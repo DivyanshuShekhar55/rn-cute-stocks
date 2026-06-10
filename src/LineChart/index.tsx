@@ -7,8 +7,7 @@ import {
   Skia,
   Circle,
 } from "@shopify/react-native-skia";
-import { GenerateStringPath, GetYForX } from "./math";
-import type { LineDataPoint, CurveType } from "./math";
+import { GenerateStringPath, GetYForX } from "../math";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
   useDerivedValue,
@@ -17,31 +16,7 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useState } from "react";
-import type { StyleProp, ViewStyle, TextStyle } from "react-native";
-import type { SharedValue } from "react-native-reanimated";
-
-// Types
-
-interface CursorProps {
-  xPos: SharedValue<number>;
-  yPos: SharedValue<number>;
-}
-
-interface LineChartProps {
-  width: number;
-  height: number;
-  chartData: LineDataPoint[];
-  chartContainerStyles?: StyleProp<ViewStyle>;
-  // label shown above chart — caller decides what to display (price, units, etc.)
-  valueTextStyles?: StyleProp<TextStyle>;
-  curveType?: CurveType;
-  colors?: string[];
-  cursorComponent?: (props: CursorProps) => React.ReactElement;
-  curveStrokeWidth?: number;
-  curveFill?: "stroke" | "fill";
-  // valuePrefix e.g. "$", "€", "kg" — prepended to the displayed value
-  valuePrefix?: string;
-}
+import { CursorProps, LineChartProps } from "./types";
 
 // Component
 
@@ -58,7 +33,6 @@ export const LineChart = ({
   curveFill = "stroke",
   valuePrefix = "",
 }: LineChartProps): React.ReactElement | null => {
-
   if (!chartData || chartData.length === 0) return null;
 
   const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax, step } =
@@ -101,15 +75,17 @@ export const LineChart = ({
   return (
     <View style={[styles.container, chartContainerStyles]}>
       <Text style={[styles.valueText, valueTextStyles]}>
-        {valuePrefix}{valueText}
+        {valuePrefix}
+        {valueText}
       </Text>
 
       <GestureDetector gesture={pan}>
         <Canvas style={{ width, height }}>
-          {cursorComponent
-            ? cursorComponent({ xPos, yPos })
-            : <Cursor xPos={xPos} yPos={yPos} />
-          }
+          {cursorComponent ? (
+            cursorComponent({ xPos, yPos })
+          ) : (
+            <Cursor xPos={xPos} yPos={yPos} />
+          )}
 
           {skPath && (
             <Path
@@ -137,13 +113,29 @@ export const LineChart = ({
 
 const Cursor = ({ xPos, yPos }: CursorProps): React.ReactElement => (
   <>
-    <Circle style="fill"   color="#f69d69" cx={xPos} cy={yPos} r={5} />
-    <Circle style="stroke" color="#f69d69" cx={xPos} cy={yPos} r={12} strokeWidth={2} opacity={0.65} />
-    <Circle style="stroke" color="#f69d69" cx={xPos} cy={yPos} r={18} strokeWidth={2} opacity={0.65} />
+    <Circle style="fill" color="#f69d69" cx={xPos} cy={yPos} r={5} />
+    <Circle
+      style="stroke"
+      color="#f69d69"
+      cx={xPos}
+      cy={yPos}
+      r={12}
+      strokeWidth={2}
+      opacity={0.65}
+    />
+    <Circle
+      style="stroke"
+      color="#f69d69"
+      cx={xPos}
+      cy={yPos}
+      r={18}
+      strokeWidth={2}
+      opacity={0.65}
+    />
   </>
 );
 
-// Styles 
+// Styles
 
 const styles = StyleSheet.create({
   container: {

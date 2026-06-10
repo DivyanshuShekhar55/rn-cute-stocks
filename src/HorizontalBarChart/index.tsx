@@ -15,63 +15,12 @@ import { scaleBand, scaleLinear } from "d3-scale";
 import { max } from "d3-array";
 import { Canvas, Group, Rect, RoundedRect } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-
-// Types 
-
-export interface BarDataItem {
-  x: string; // category label — rendered on the left (y-axis side)
-  y: number; // numeric value  — bars grow rightward
-}
-
-export type AnimationType = "spring" | "linear" | "none";
-
-export interface SpringAnimationConfig {
-  mass?: number;
-  damping?: number;
-  stiffness?: number;
-}
-
-export interface LinearAnimationConfig {
-  duration?: number;
-}
-
-export type AnimationConfig = SpringAnimationConfig | LinearAnimationConfig;
-
-interface HorizontalBarChartProps {
-  width: number;
-  height: number;
-  data: BarDataItem[];
-  color?: string;
-  activeColor?: string;
-  barGap?: number;
-  bend?: number;
-  numXLabels?: number;
-  /** If true, bars scroll vertically; category labels stay sticky on left. Default: false */
-  scrollable?: boolean;
-  /** Minimum bar height in px when scrollable. Default: 25 */
-  minBarHeight?: number;
-  /** Tap animation type. Default: "spring" */
-  animationType?: AnimationType;
-  /**
-   * Config passed to the animation driver.
-   * For "spring": { mass, damping, stiffness }
-   * For "linear": { duration }
-   * Ignored when animationType is "none".
-   */
-  animationConfig?: AnimationConfig;
-}
-
-// Defaults
-
-const DEFAULT_SPRING_CONFIG: Required<SpringAnimationConfig> = {
-  mass: 1,
-  damping: 5,
-  stiffness: 150,
-};
-
-const DEFAULT_LINEAR_CONFIG: Required<LinearAnimationConfig> = {
-  duration: 300,
-};
+import { LinearAnimationConfig, SpringAnimationConfig } from "../shared/types";
+import { HorizontalBarChartProps } from "./types";
+import {
+  DEFAULT_LINEAR_CONFIG,
+  DEFAULT_SPRING_CONFIG,
+} from "../shared/constants";
 
 const MIN_BAR_HEIGHT_DEFAULT = 25;
 
@@ -91,20 +40,19 @@ const HorizontalBarChart = ({
   animationType = "spring",
   animationConfig,
 }: HorizontalBarChartProps): React.ReactElement => {
-
   const categoryLabels: string[] = data.map((d) => d.x);
-  const values: number[]         = data.map((d) => d.y);
-  const LabelCount               = data.length;
+  const values: number[] = data.map((d) => d.y);
+  const LabelCount = data.length;
 
   // ── Axis dimensions ───────────────────────────────────────────────────────
-  const xAxisHeight    = 0.1 * height;        // numeric tick label strip at top
-  const yAxisWidth     = 0.18 * width;        // category label strip on left
-  const chartWidth     = width - yAxisWidth;  // horizontal drawing area (bars)
+  const xAxisHeight = 0.1 * height; // numeric tick label strip at top
+  const yAxisWidth = 0.18 * width; // category label strip on left
+  const chartWidth = width - yAxisWidth; // horizontal drawing area (bars)
   const fixedChartHeight = height - xAxisHeight; // vertical drawing area (viewport)
 
-  const FONT_SIZE   = 12;
+  const FONT_SIZE = 12;
   const LINE_HEIGHT = FONT_SIZE * 1.2;
-  const textOffset  = LINE_HEIGHT / 2;
+  const textOffset = LINE_HEIGHT / 2;
 
   // ── Scales — always global across all data ────────────────────────────────
 
@@ -148,7 +96,7 @@ const HorizontalBarChart = ({
   // Mirrors the vertical chart's pattern exactly, just vertical instead of horizontal.
   // barScrollRef  → the canvas ScrollView the user actually scrolls
   // labelScrollRef → the category label ScrollView that follows passively
-  const barScrollRef   = useAnimatedRef<Animated.ScrollView>();
+  const barScrollRef = useAnimatedRef<Animated.ScrollView>();
   const labelScrollRef = useAnimatedRef<Animated.ScrollView>();
 
   const scrollY = useSharedValue<number>(0);
@@ -169,7 +117,7 @@ const HorizontalBarChart = ({
   const skiaScaleX = useSharedValue<number>(1);
 
   const skiaTransform: DerivedValue<{ scaleX: number }[]> = useDerivedValue(
-    () => [{ scaleX: skiaScaleX.value }]
+    () => [{ scaleX: skiaScaleX.value }],
   );
 
   const tapGesture = Gesture.Tap()
@@ -178,7 +126,7 @@ const HorizontalBarChart = ({
       const touchY = g.y;
       // Inverse band lookup — which row does touchY fall in?
       const eachBandHeight = chartHeight / LabelCount;
-      const clickedIndex   = Math.floor(touchY / eachBandHeight);
+      const clickedIndex = Math.floor(touchY / eachBandHeight);
 
       if (clickedIndex >= 0 && clickedIndex < LabelCount) {
         setActiveIndex(activeIndex === clickedIndex ? null : clickedIndex);
@@ -188,10 +136,16 @@ const HorizontalBarChart = ({
         skiaScaleX.value = 0.85; // snap compress leftward
 
         if (animationType === "spring") {
-          const cfg = { ...DEFAULT_SPRING_CONFIG, ...(animationConfig as SpringAnimationConfig) };
+          const cfg = {
+            ...DEFAULT_SPRING_CONFIG,
+            ...(animationConfig as SpringAnimationConfig),
+          };
           skiaScaleX.value = withSpring(1, cfg);
         } else {
-          const cfg = { ...DEFAULT_LINEAR_CONFIG, ...(animationConfig as LinearAnimationConfig) };
+          const cfg = {
+            ...DEFAULT_LINEAR_CONFIG,
+            ...(animationConfig as LinearAnimationConfig),
+          };
           skiaScaleX.value = withTiming(1, {
             duration: cfg.duration,
             easing: Easing.out(Easing.quad),
@@ -204,9 +158,10 @@ const HorizontalBarChart = ({
 
   const renderCanvas = (): React.ReactElement => (
     <GestureDetector gesture={tapGesture}>
-      <View style={{ width: chartWidth, height: chartHeight, position: "relative" }}>
+      <View
+        style={{ width: chartWidth, height: chartHeight, position: "relative" }}
+      >
         <Canvas style={StyleSheet.absoluteFill}>
-
           {/* Vertical grid lines at each numeric tick */}
           {xTicks.map((tick, i) => (
             <Rect
@@ -222,12 +177,12 @@ const HorizontalBarChart = ({
 
           {/* Bars */}
           {categoryLabels.map((label, index) => {
-            const value          = values[index] ?? 0;
-            const fullBarWidth   = xScale(value);
-            const barTop         = yScale(label) ?? 0;
+            const value = values[index] ?? 0;
+            const fullBarWidth = xScale(value);
+            const barTop = yScale(label) ?? 0;
             const verticalOffset = (chartHeight / LabelCount - barHeight) / 2;
             const finalizedYPosition = barTop + verticalOffset;
-            const isActive       = activeIndex === index;
+            const isActive = activeIndex === index;
 
             const roundedBarGeometry = {
               rect: {
@@ -237,10 +192,10 @@ const HorizontalBarChart = ({
                 height: barHeight,
               },
               // Right corners rounded, left corners flat so they anchor to the axis
-              topLeft:     { x: 0,    y: 0    },
-              bottomLeft:  { x: 0,    y: 0    },
-              topRight:    { x: bend, y: bend  },
-              bottomRight: { x: bend, y: bend  },
+              topLeft: { x: 0, y: 0 },
+              bottomLeft: { x: 0, y: 0 },
+              topRight: { x: bend, y: bend },
+              bottomRight: { x: bend, y: bend },
             };
 
             return (
@@ -260,26 +215,30 @@ const HorizontalBarChart = ({
         </Canvas>
 
         {/* Value bubble — floats just right of the active bar tip */}
-        {activeIndex !== null && (() => {
-          const activeItem = data[activeIndex];
-          if (!activeItem) return null;
-          const barTop         = yScale(activeItem.x) ?? 0;
-          const verticalOffset = (chartHeight / LabelCount - barHeight) / 2;
-          const finalizedYPosition = barTop + verticalOffset;
-          const tipX           = xScale(activeItem.y);
+        {activeIndex !== null &&
+          (() => {
+            const activeItem = data[activeIndex];
+            if (!activeItem) return null;
+            const barTop = yScale(activeItem.x) ?? 0;
+            const verticalOffset = (chartHeight / LabelCount - barHeight) / 2;
+            const finalizedYPosition = barTop + verticalOffset;
+            const tipX = xScale(activeItem.y);
 
-          return (
-            <View
-              pointerEvents="none"
-              style={[styles.valueBadge, {
-                left: tipX + 6,
-                top: finalizedYPosition + barHeight / 2 - 11,
-              }]}
-            >
-              <Text style={styles.valueBadgeText}>{activeItem.y}</Text>
-            </View>
-          );
-        })()}
+            return (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.valueBadge,
+                  {
+                    left: tipX + 6,
+                    top: finalizedYPosition + barHeight / 2 - 11,
+                  },
+                ]}
+              >
+                <Text style={styles.valueBadgeText}>{activeItem.y}</Text>
+              </View>
+            );
+          })()}
       </View>
     </GestureDetector>
   );
@@ -288,7 +247,7 @@ const HorizontalBarChart = ({
 
   const renderCategoryLabels = (): React.ReactElement[] =>
     categoryLabels.map((label, index) => {
-      const bh       = yScale.bandwidth();
+      const bh = yScale.bandwidth();
       const isActive = activeIndex === index;
       return (
         <View
@@ -301,7 +260,12 @@ const HorizontalBarChart = ({
             marginVertical: (chartHeight / LabelCount - bh) / 2,
           }}
         >
-          <Text style={[styles.yAxisText, isActive ? styles.activeYAxisText : undefined]}>
+          <Text
+            style={[
+              styles.yAxisText,
+              isActive ? styles.activeYAxisText : undefined,
+            ]}
+          >
             {label}
           </Text>
         </View>
@@ -312,13 +276,21 @@ const HorizontalBarChart = ({
 
   return (
     <View style={{ width, height, marginTop: 50, marginLeft: 20 }}>
-
       {/* Sticky numeric (x) axis labels at top — these never scroll */}
-      <View style={{ flexDirection: "row", height: xAxisHeight, marginLeft: yAxisWidth }}>
+      <View
+        style={{
+          flexDirection: "row",
+          height: xAxisHeight,
+          marginLeft: yAxisWidth,
+        }}
+      >
         {xTicks.map((tick, i) => (
           <Text
             key={i}
-            style={[styles.xAxisText, { position: "absolute", left: xScale(tick) - textOffset }]}
+            style={[
+              styles.xAxisText,
+              { position: "absolute", left: xScale(tick) - textOffset },
+            ]}
           >
             {tick}
           </Text>
@@ -326,8 +298,13 @@ const HorizontalBarChart = ({
       </View>
 
       {/* Main row: category labels + chart area */}
-      <View style={{ flexDirection: "row", height: fixedChartHeight, overflow: "hidden" }}>
-
+      <View
+        style={{
+          flexDirection: "row",
+          height: fixedChartHeight,
+          overflow: "hidden",
+        }}
+      >
         {/* Category labels — sticky, driven by labelScrollRef on UI thread */}
         <Animated.ScrollView
           ref={labelScrollRef}
