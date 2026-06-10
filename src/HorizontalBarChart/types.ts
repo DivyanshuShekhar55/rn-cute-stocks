@@ -1,11 +1,6 @@
 // Types
 
-import { AnimationConfig, AnimationType } from "../shared/types";
-
-export interface BarDataItem {
-  x: string; // category label — rendered on the left (y-axis side)
-  y: number; // numeric value  — bars grow rightward
-}
+import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
 
 export interface HorizontalBarChartProps {
   width: number;

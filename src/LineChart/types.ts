@@ -1,13 +1,9 @@
 import { SharedValue } from "react-native-reanimated";
 import { CurveType, LineDataPoint } from "../math";
 import { StyleProp, TextStyle, ViewStyle } from "react-native";
+import { CursorProps } from "../shared/types";
 
 // Types
-
-export interface CursorProps {
-  xPos: SharedValue<number>;
-  yPos: SharedValue<number>;
-}
 
 export interface LineChartProps {
   width: number;

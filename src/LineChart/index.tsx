@@ -19,8 +19,7 @@ import { useState } from "react";
 import { CursorProps, LineChartProps } from "./types";
 
 // Component
-
-export const LineChart = ({
+const LineChart = ({
   width,
   height,
   chartData,
@@ -147,3 +146,5 @@ const styles = StyleSheet.create({
     fontSize: 52,
   },
 });
+
+export default LineChart;

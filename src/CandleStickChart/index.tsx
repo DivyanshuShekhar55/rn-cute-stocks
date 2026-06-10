@@ -14,7 +14,14 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { FindDomain } from "../math";
 import { scheduleOnRN } from "react-native-worklets";
-import { AxisLinePathEffect, Candle, CandleChartProps, CandleStickChartProps, CandleStickProps, Domain } from "./types";
+import {
+  AxisLinePathEffect,
+  Candle,
+  CandleChartProps,
+  CandleStickChartProps,
+  CandleStickProps,
+  Domain,
+} from "./types";
 
 const CandleChart = ({
   width,
@@ -691,5 +698,4 @@ const AxisLine = ({
   );
 };
 
-export { CandleStickChart };
-export type { Candle, Domain, AxisLinePathEffect, CandleStickChartProps };
+export default CandleStickChart;

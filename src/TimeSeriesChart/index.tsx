@@ -21,7 +21,7 @@ import { CursorProps, TimeSeriesChartProps } from "./types";
 
 // Component
 
-export const TimeSeriesChart = ({
+const TimeSeriesChart = ({
   width,
   height,
   chartData,
@@ -143,3 +143,5 @@ const styles = StyleSheet.create({
     fontSize: 52,
   },
 });
+
+export default TimeSeriesChart

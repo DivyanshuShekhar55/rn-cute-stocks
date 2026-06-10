@@ -1,14 +1,10 @@
 // Types 
 
-import { AnimationConfig, AnimationType } from "../shared/types";
+import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
 
 /* User data shall be of form :
 [{x:label, y:num}], we extract x and y labels from it
 */
-export interface BarDataItem {
-  x: string;
-  y: number;
-}
 
 export interface BarChartProps {
   width: number;
