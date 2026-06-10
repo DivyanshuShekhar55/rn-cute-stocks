@@ -16,7 +16,8 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useState } from "react";
-import { CursorProps, TimeSeriesChartProps } from "./types";
+import { TimeSeriesChartProps } from "./types";
+import { CursorProps } from "../shared/types";
 
 
 // Component

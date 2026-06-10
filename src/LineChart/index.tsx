@@ -16,7 +16,8 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useState } from "react";
-import { CursorProps, LineChartProps } from "./types";
+import { LineChartProps } from "./types";
+import { CursorProps } from "../shared/types";
 
 // Component
 const LineChart = ({

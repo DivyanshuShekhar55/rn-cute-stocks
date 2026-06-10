@@ -1,24 +1,33 @@
-# rn-cute-stocks
+# rn-cute-charts
 
-A performant, interactive stock chart library for React Native. Built with Skia and Reanimated for smooth animations and D3 for precise calculations.
+A performant, interactive chart library for React Native. Built with Skia and Reanimated for smooth animations and D3 for precise calculations.
 
 ## Charts Available
 
-- **Line Chart**: Smooth, gesture-driven line charts for stock price trends
-- **Candlestick Chart**: Interactive OHLC (Open-High-Low-Close) candlestick charts with zoom and pan support
+- **Vertical Bar Chart**: Tap-interactive vertical bar charts with optional horizontal scroll
+- **Horizontal Bar Chart**: Tap-interactive horizontal bar charts with optional vertical scroll
+- **Line Chart**: Smooth, gesture-driven line charts for generic labeled data
+- **Time Series Chart**: Gesture-driven line charts for timestamp-based financial/time data
+- **Candlestick Chart**: Interactive OHLC candlestick charts with pinch zoom and pan
+- **Pie Chart**: Tap-interactive pie charts with animated slice highlight
 
 ## Installation
 
-First, install the peer dependencies:
+Install peer dependencies first.
+These are the dependencies you will have by default probably in any app with "cool" animations. Namely : skia, reanimated, gesture-handler and worklets.
+```bash
+npm install @shopify/react-native-skia react-native-reanimated react-native-gesture-handler react-native-worklets
+```
+Then install d3.js dependencies:
 
 ```bash
-npm install @shopify/react-native-skia react-native-reanimated react-native-gesture-handler react-native-worklets d3-array d3-scale d3-shape
+npm install d3-array d3-scale d3-shape
 ```
 
 Then install the library:
 
 ```bash
-npm install rn-cute-stocks
+npm install rn-cute-charts
 ```
 
 ## Compatibility
@@ -29,278 +38,433 @@ npm install rn-cute-stocks
 
 ## Important Notes
 
-- Wrap your app inside `GestureHandlerRootView` from react-native-gesture-handler (typically in your root layout file)
-- The library uses `react-native-worklets` for smooth updates via `scheduleOnRN()` instead of blocking the JS thread
+- Wrap your app in `GestureHandlerRootView` from `react-native-gesture-handler` (typically in your root layout file)
+- The library uses `react-native-worklets` for smooth updates via `scheduleOnRN()` to avoid blocking the JS thread
 
 ---
 
-## Line Chart
-
-<img src="./assests/images/linechart_main.jpeg" width="400" height="400">
+## Vertical Bar Chart
 
 ### Features
 
-- **Smooth**: Uses Skia and Reanimated to offload animations to the UI thread
-- **Gesture-driven**: Move across the chart to see real-time price updates
-- **Customizable**: Bring your own cursor component or use the default. Use colors as you like
-- **Multiple curve types**: Linear, Basis, Monotone, Natural, and Bump curves
-- **Lightweight**: Minimal bundle size—just the essentials
-- **TypeScript-friendly**: Well-typed API (coming soon)
+- Tap a bar to highlight it and show its value in a floating bubble
+- Spring, linear, or no tap animation — fully configurable
+- Optional horizontal scroll when bars don't fit the given width
+- All UI rendered with Skia
+- Scroll sync between bars and X-axis labels runs on the UI thread (zero lag)
 
 ### Quick Start
 
-```jsx
-import { StockCharts } from 'rn-cute-stocks';
+```tsx
+import { VerticalBarChart } from 'rn-cute-charts';
+import type { BarDataItem } from 'rn-cute-charts';
 
-const chartData = [
-  { timestamp: 1704067200000, price: 150.5 },
-  { timestamp: 1704153600000, price: 152.3 },
-  { timestamp: 1704240000000, price: 148.7 },
-  // ... more data points
+const data : BarDataItem[] = [
+  { x: "Mon", y: 120 },
+  { x: "Tue", y: 180 },
+  { x: "Wed", y: 134 },
 ];
 
 export default function App() {
   return (
-    <StockCharts
-      width={350}
-      height={300}
-      chartData={chartData}
-      colors={['#3b82f6', '#8b5cf6']}
-      curveType="curveBasis"
-      curveStrokeWidth={3}
+    <VerticalBarChart
+      width={320}
+      height={320}
+      data={data}
+      color="#9672f8"
+      activeColor="#ff7e5f"
     />
   );
 }
 ```
 
-### Line Chart API Reference
+### API Reference
 
-#### StockCharts Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Chart width |
+| `height` | `number` | **required** | Chart height |
+| `data` | `BarDataItem[]` | **required** | Array of `{ x: string, y: number }` |
+| `color` | `string` | `"#9672f8"` | Default bar color |
+| `activeColor` | `string` | `"#ff7e5f"` | Color of the tapped/active bar |
+| `barGap` | `number` | `0.2` | Padding ratio between bars (0–1) |
+| `bend` | `number` | `10` | Top corner radius of bars |
+| `numYLabels` | `number` | `3` | Number of Y-axis tick labels |
+| `scrollable` | `boolean` | `false` | Enable horizontal scroll when bars are too many to fit |
+| `minBarWidth` | `number` | `25` | Minimum bar width in px when scrollable |
+| `animationType` | `AnimationType` | `"spring"` | Tap animation: `"spring"`, `"linear"`, or `"none"` |
+| `animationConfig` | `AnimationConfig` | see below | Config for the animation driver |
+
+---
+
+## Horizontal Bar Chart
+
+### Features
+
+- Same feature set as Vertical Bar Chart, rotated 90°
+- Bars grow rightward from the Y-axis
+- Optional vertical scroll with sticky top numeric axis
+- Scroll sync between bars and category labels runs on UI thread
+
+### Quick Start
+
+```tsx
+import { HorizontalBarChart } from 'rn-cute-charts';
+import type { BarDataItem } from 'rn-cute-charts';
+
+const data : BarDataItem[] = [
+  { x: "Sales", y: 40 },
+  { x: "Support", y: 25 },
+  { x: "Marketing", y: 20 },
+];
+
+export default function App() {
+  return (
+    <HorizontalBarChart
+      width={320}
+      height={320}
+      data={data}
+      color="#9672f8"
+      activeColor="#ff7e5f"
+    />
+  );
+}
+```
+
+### API Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Chart width |
+| `height` | `number` | **required** | Chart height |
+| `data` | `BarDataItem[]` | **required** | Array of `{ x: string, y: number }` |
+| `color` | `string` | `"#9672f8"` | Default bar color |
+| `activeColor` | `string` | `"#ff7e5f"` | Color of the tapped/active bar |
+| `barGap` | `number` | `0.2` | Padding ratio between bars (0–1) |
+| `bend` | `number` | `10` | Right corner radius of bars |
+| `numXLabels` | `number` | `3` | Number of X-axis (numeric) tick labels |
+| `scrollable` | `boolean` | `false` | Enable vertical scroll when bars are too many to fit |
+| `minBarHeight` | `number` | `25` | Minimum bar height in px when scrollable |
+| `animationType` | `AnimationType` | `"spring"` | Tap animation: `"spring"`, `"linear"`, or `"none"` |
+| `animationConfig` | `AnimationConfig` | see below | Config for the animation driver |
+
+---
+
+## Animation Config
+
+Both bar charts accept an `animationConfig` prop. The shape depends on `animationType`
+
+```ts
+// animationType="spring"
+animationConfig={{ mass: 1, damping: 5, stiffness: 150 }}
+
+// animationType="linear"
+animationConfig={{ duration: 300 }}
+```
+
+---
+
+## Line Chart
+
+- For generic string-labeled data — categories and custom labels. Uses `scalePoint` from D3 so all points are evenly spaced.
+- Supports gradient colours for the curve
+- Supports multiple types of curve
+
+### Quick Start
+
+```tsx
+import { LineChart } from 'rn-cute-charts';
+import type { LineDataPoint } from 'rn-cute-charts';
+
+const data : LineDataPoint[] = [
+  { x: "Week 1", y: 120 },
+  { x: "Week 2", y: 145 },
+  { x: "Week 3", y: 132 },
+];
+
+export default function App() {
+  return (
+    <LineChart
+      width={350}
+      height={300}
+      chartData={data}
+      colors={['#9672f8', '#ff7e5f']}
+      curveType="curveBasis"
+      valuePrefix="$"
+    />
+  );
+}
+```
+
+### API Reference
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `width` | `number` | **required** | Chart canvas width |
 | `height` | `number` | **required** | Chart canvas height |
-| `chartData` | `Array<{timestamp: number, price: number}>` | **required** | Array of data points with Unix timestamps and prices |
-| `colors` | `string[]` | `['#000']` | Gradient colors for the chart line |
-| `curveType` | `string` | `'curveBasis'` | Curve interpolation type (see below) |
-| `curveStrokeWidth` | `number` | `2` | Width of the chart line |
-| `curveFill` | `'stroke' \| 'fill'` | `'stroke'` | Whether to fill or stroke the path |
-| `priceTextStyles` | `TextStyle` | `{}` | Custom styles for the price text display |
-| `chartContainerStyles` | `ViewStyle` | `{}` | Custom styles for the chart container |
-| `cursorComponent` | `(props: {xPos: SharedValue, yPos: SharedValue}) => JSX.Element` | default cursor | Custom cursor component |
-| `ySearch` | `string` | `'binarySearchWithInterpolation'` | Algorithm to find Y-vals corresponding to X-vals |
+| `chartData` | `LineDataPoint[]` | **required** | Array of `{ x: string, y: number }` |
+| `colors` | `string[]` | `["#000"]` | Gradient colors for the chart line |
+| `curveType` | `CurveType` | `"curveBasis"` | Curve interpolation type (see below) |
+| `curveStrokeWidth` | `number` | `2` | Line stroke width |
+| `curveFill` | `"stroke" \| "fill"` | `"stroke"` | Fill or stroke the path |
+| `valuePrefix` | `string` | `""` | Prefix for the displayed value e.g. `"$"`, `"€"` |
+| `valueTextStyles` | `TextStyle` | `{}` | Styles for the value label above the chart |
+| `chartContainerStyles` | `ViewStyle` | `{}` | Styles for the outer container |
+| `cursorComponent` | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component |
 
-#### Curve Types
+---
 
-- `curveBasis` - Smooth bezier curve (default)
-- `curveBumpX` - Bump curve optimized for time-series data
-- `curveLinear` - Straight lines between points
-- `curveMonotoneX` - Monotone cubic interpolation
-- `natural` - Natural cubic spline
+## Time Series Chart
 
-### Advanced Usage
+For timestamp-based data (stock prices, sensor data). Uses `scaleTime` so points are spaced proportionally by time distance.
 
-#### Custom Cursor
+### Quick Start
 
-Want your own cursor? Pass a component that accepts `xPos` and `yPos` shared values:
+```tsx
+import { TimeSeriesChart } from 'rn-cute-charts';
+import type { TimeSeriesDataPoint } from 'rn-cute-charts';
 
-```jsx
+const data : TimeSeriesDataPoint[] = [
+  { x: 1704067200000, y: 150.5 },
+  { x: 1704153600000, y: 152.3 },
+  { x: 1704240000000, y: 148.7 },
+];
+
+export default function App() {
+  return (
+    <TimeSeriesChart
+      width={350}
+      height={300}
+      chartData={data}
+      colors={['#3b82f6', '#8b5cf6']}
+      curveType="curveBumpX"
+    />
+  );
+}
+```
+
+### API Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Chart canvas width |
+| `height` | `number` | **required** | Chart canvas height |
+| `chartData` | `TimeSeriesDataPoint[]` | **required** | Array of `{ x: number, y: number }` where `x` is Unix ms |
+| `colors` | `string[]` | `["#000"]` | Gradient colors for the chart line |
+| `curveType` | `CurveType` | `"curveBasis"` | Curve interpolation type |
+| `curveStrokeWidth` | `number` | `2` | Line stroke width |
+| `curveFill` | `"stroke" \| "fill"` | `"stroke"` | Fill or stroke the path |
+| `priceTextStyles` | `TextStyle` | `{}` | Styles for the price label above the chart |
+| `chartContainerStyles` | `ViewStyle` | `{}` | Styles for the outer container |
+| `cursorComponent` | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component |
+| `ySearch` | `SearchAlgorithm` | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan |
+
+### Line vs Time Series — which to use?
+
+| | `LineChart` | `TimeSeriesChart` |
+|---|---|---|
+| X-axis data | Any string label | Unix timestamp (ms) |
+| Point spacing | Always equal | Proportional to time gap |
+| Use case | categories and custom labels | Stock prices, sensor readings |
+| X lookup | O(1) direct index | Binary search + interpolation |
+
+### Curve Types (both line charts)
+
+| Value | Description |
+|---|---|
+| `"curveBasis"` | Smooth bezier (default) |
+| `"curveBumpX"` | Bump curve, good for time-series |
+| `"curveLinear"` | Straight lines between points |
+| `"curveMonotoneX"` | Monotone cubic interpolation |
+| `"natural"` | Natural cubic spline |
+
+### Custom Cursor
+
+Both line charts accept a `cursorComponent` prop:
+
+```tsx
 import { Circle } from '@shopify/react-native-skia';
+import type { CursorProps } from 'rn-cute-charts';
 
-const CustomCursor = ({ xPos, yPos }) => (
+const CustomCursor = ({ xPos, yPos }: CursorProps) => (
   <Circle cx={xPos} cy={yPos} r={8} color="#ff6b6b" />
 );
 
-<StockCharts
-  {...props}
-  cursorComponent={CustomCursor}
-/>
+<LineChart {...props} cursorComponent={CustomCursor} />
 ```
 
-#### Styling
+---
 
-```jsx
-<StockCharts
-  {...props}
-  priceTextStyles={{
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  }}
-  colors={['#ff6b6b', '#4ecdc4', '#45b7d1']}
-  curveStrokeWidth={4}
-/>
-```
+## Pie Chart
 
-### Line Chart Data Format
+### Features
 
-Your data should be an array of objects with `timestamp` (Unix timestamp in milliseconds) and `price` (number):
+- Tap a slice to highlight it (pops out slightly) and show a label bubble with value and percentage
+- Donut mode via `donut` + `innerRadiusRatio` props
 
-```javascript
-const chartData = [
-  { timestamp: 1704067200000, price: 150.5 },
-  { timestamp: 1704153600000, price: 152.3 },
-  { timestamp: 1704240000000, price: 148.7 },
+### Quick Start
+
+```tsx
+import { PieChart } from 'rn-cute-charts';
+import type { PieDataPoint } from 'rn-cute-charts';
+
+const data : PieDataPoint[] = [
+  { label: "Sales",     value: 40, color: "#FF6B6B" },
+  { label: "Support",   value: 25, color: "#4ECDC4" },
+  { label: "Marketing", value: 20, color: "#45B7D1" },
+  { label: "Ops",       value: 15, color: "#FFA07A" },
 ];
+
+export default function App() {
+  return (
+    <PieChart
+      width={300}
+      height={300}
+      data={data}
+    />
+  );
+}
 ```
 
-The library handles the rest—scaling, interpolation, and touch interactions.
+### API Reference
 
-#### Additional Notes
-
-- Keep data arrays above 50 points for smooth curves
-- The library caches path calculations, so re-renders are cheap
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | **required** | Chart width |
+| `height` | `number` | **required** | Chart height |
+| `data` | `PieDataPoint[]` | **required** | Array of `{ label, value, color }` |
+| `donut` | `boolean` | `false` | Render as a donut chart |
+| `innerRadiusRatio` | `number` | `0.6` | Inner hole size as ratio of outer radius (only when `donut=true`) |
+| `labelBgColor` | `string` | `"#333"` | Background color of the tap label bubble |
+| `labelFontColor` | `string` | `"#fff"` | Text color of the tap label bubble |
 
 ---
 
 ## Candlestick Chart
 
-<img src="./assests/images/candlechart_main.jpeg" width="400" height="400">
-
 ### Features
 
-- **Interactive Gestures**: Single finger crosshair, two-finger zoom, three-finger pan
-- **Smooth Performance**: Built with Skia for hardware-accelerated rendering
-- **Auto-scaling Axes**: Dynamic price and time labels
-- **Fully Customizable**: Colors, fonts, axis styling, and label offsets
-- **Worklet-based Updates**: Uses react-native-worklets for smooth UI updates without JS thread blocking
+- Single finger crosshair with price label
+- Two-finger pinch zoom (constrained between `minVisibleCandles` and `maxVisibleCandles`)
+- Three-finger pan to scroll through history
+- Auto-scaling axes (price and time)
+- Dashed, solid, or no axis grid lines
 
-### Importing
+### Quick Start
 
-```jsx
-import { CandleStickChart } from 'rn-cute-stocks/candlestick';
-```
+```tsx
+import { CandleStickChart } from 'rn-cute-charts';
+import type { Candle } from 'rn-cute-charts';
 
-### Data Format
-
-Each candle requires four OHLC values plus a timestamp:
-
-```javascript
-const candleData = [
-  {
-    timestamp: 1704067200,  // Unix timestamp in seconds
-    open: 150.5,
-    high: 152.8,
-    low: 149.2,
-    close: 151.3
-  },
-  {
-    timestamp: 1704070800,
-    open: 151.3,
-    high: 153.5,
-    low: 150.8,
-    close: 152.1
-  },
-  // ... more candles
+const data : Candle[] = [
+  { timestamp: 1704067200, open: 150.5, high: 152.8, low: 149.2, close: 151.3 },
+  { timestamp: 1704070800, open: 151.3, high: 153.5, low: 150.8, close: 152.1 },
 ];
-```
-
-### Basic Usage
-
-```jsx
-import { CandleStickChart } from 'rn-cute-stocks/candlestick';
 
 export default function App() {
   return (
     <CandleStickChart
       width={400}
       height={600}
-      data={candleData}
-      fill={["#22c55e", "#ef4444"]}  // [bullish, bearish]
+      data={data}
+      fill={["#22c55e", "#ef4444"]}
       bgCol="#0a0a0a"
-      wickColor="rgba(255, 255, 255, 0.6)"
-      crossHairColor="rgba(255, 255, 255, 0.8)"
     />
   );
 }
 ```
 
-### Candlestick Chart API Reference
+### API Reference
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `width` | `number` | **required** | Total chart width including axis labels |
-| `height` | `number` | **required** | Total chart height including axis labels |
-| `data` | `Array<{timestamp, open, high, low, close}>` | **required** | Array of candlestick data (OHLC format) |
-| `bgCol` | `string` | `"white"` | Background color of the chart |
-| `fill` | `[string, string]` | `["green", "red"]` | Colors for bullish (close > open) and bearish candles |
-| `currency` | `string` | `"$"` | Currency symbol for price labels |
-| `labelFontSize` | `number` | `18` | Font size for the crosshair price label |
-| `labelRightOffset` | `number` | `96` | Horizontal offset for the crosshair price label from right edge |
-| `labelFontCol` | `string` | `"black"` | Color of the crosshair price label text |
-| `numLabels` | `number` | `5` | Number of labels on both X and Y axes |
-| `axisFontColor` | `string` | `"black"` | Color of axis label text |
-| `axisFontSize` | `number` | `14` | Font size for axis labels |
-| `axisLabelRightOffset` | `number` | `54` | Space reserved on the right for Y-axis price labels |
-| `axisLabelBottomOffset` | `number` | `20` | Space reserved at the bottom for X-axis time labels |
-| `axisLinePathEffect` | `"dashed" \| "line" \| "none"` | `"dashed"` | Style of the axis grid lines |
-| `axisLineColor` | `string` | `"gray"` | Color of the axis grid lines |
-| `wickColor` | `string` | `"rgba(255, 255, 255, 0.6)"` | Color of the candle wicks (high-low lines) |
-| `crossHairColor` | `string` | `"rgba(255,255,255,0.6)"` | Color of the crosshair lines |
-| `maxVisibleCandles` | `number` | `50` | Maximum number of candles visible at once (zoom out limit) |
-| `minVisibleCandles` | `number` | `10` | Minimum number of candles visible at once (zoom in limit) |
-
-### Understanding Layout and Offsets
-
-<img src="./assests/images/candlechart_layout.png" width="600" height="300">
-
-The chart is divided into two regions. The chart automatically calculates:
-- **Chart Region Width** = `width - axisLabelRightOffset`
-- **Chart Region Height** = `height - axisLabelBottomOffset`
-
-Candles and crosshair are rendered in the chart region, while axes occupy the margin areas. The `labelRightOffset` determines where the crosshair price label appears from the right edge.
+| `width` | `number` | **required** | Total chart width including axis margins |
+| `height` | `number` | **required** | Total chart height including axis margins |
+| `data` | `Candle[]` | **required** | Array of OHLC candles with Unix second timestamps |
+| `bgCol` | `string` | `"white"` | Background color |
+| `fill` | `[string, string]` | `["green","red"]` | Colors for bullish and bearish candles |
+| `currency` | `string` | `"$"` | Currency symbol for crosshair price label |
+| `labelFontSize` | `number` | `18` | Font size for crosshair price label |
+| `labelRightOffset` | `number` | `96` | Right offset for crosshair price label |
+| `labelFontCol` | `string` | `"black"` | Color of crosshair price label |
+| `numLabels` | `number` | `5` | Number of labels on each axis |
+| `axisFontColor` | `string` | `"black"` | Axis label text color |
+| `axisFontSize` | `number` | `14` | Axis label font size |
+| `axisLabelRightOffset` | `number` | `54` | Space reserved on right for Y-axis labels |
+| `axisLabelBottomOffset` | `number` | `20` | Space reserved at bottom for X-axis labels |
+| `axisLinePathEffect` | `AxisLinePathEffect` | `"dashed"` | Grid line style: `"dashed"`, `"line"`, or `"none"` |
+| `axisLineColor` | `string` | `"gray"` | Grid line color |
+| `wickColor` | `string` | `"rgba(255,255,255,0.6)"` | Candle wick color |
+| `crossHairColor` | `string` | `"rgba(255,255,255,0.6)"` | Crosshair line color |
+| `maxVisibleCandles` | `number` | `50` | Zoom-out limit |
+| `minVisibleCandles` | `number` | `10` | Zoom-in limit |
 
 ### Gesture Controls
 
-The candlestick chart supports three different gestures:
+| Fingers | Gesture | Action |
+|---|---|---|
+| 1 | Pan | Crosshair — snaps to nearest candle center |
+| 2 | Pinch | Zoom in/out around focal point |
+| 3 | Pan | Scroll left/right through history |
 
-**1. Single Finger (Crosshair)**
-- Touch and drag with one finger to activate the crosshair
-- Crosshair snaps to the nearest candle center
-- Shows real-time price at the crosshair position
-- Displays horizontal and vertical lines for precise reading
+### Layout
 
-**2. Two Fingers (Zoom)**
-- Pinch with two fingers to zoom in and out
-- Zoom is constrained between `minVisibleCandles` and `maxVisibleCandles`
-- Zooms around the gesture's focal point (most recent candles stay visible)
-- Live zoom (however this consumes some resources on JS thread as updates to react states happen)
-- Useful for analyzing specific time periods or getting an overview
+The chart automatically calculates:
+- **Chart region width** = `width - axisLabelRightOffset`
+- **Chart region height** = `height - axisLabelBottomOffset`
 
-**3. Three Fingers (Pan/Scroll)**
-- Drag with three fingers to scroll left and right through historical data
-- Pan updates happen live during the gesture
-- Cannot scroll beyond the data boundaries
-- Maintains the current zoom level while scrolling
+Candles and crosshair render inside the chart region. Axes occupy the margin areas.
 
-All gestures use the Race composition, meaning only one gesture can be active at a time. The chart automatically detects which gesture you're performing based on the number of fingers.
+---
 
-### Important Notes
+## TypeScript Types
 
-- Wrap your app inside `GestureHandlerRootView` from react-native-gesture-handler (typically in your root layout file)
-- The library uses `react-native-worklets` for smooth state updates via `scheduleOnRN()` instead of `runOnJS()`
-- Candle width is calculated automatically based on visible candles: `chartWidth / visibleCandleCount`
-- Price domain is calculated from the `high` and `low` values of visible candles only
-- Time labels on X-axis use 24-hour format by default (change `hour12: false` to `true` in the code for 12-hour format)
+All types are exported from the root import:
+
+```ts
+import type {
+  // Shared bar chart types
+  BarDataItem,
+  AnimationType,
+  AnimationConfig,
+  SpringAnimationConfig,
+  LinearAnimationConfig,
+
+  // Line / TimeSeries types
+  LineDataPoint,
+  TimeSeriesDataPoint,
+  CurveType,
+  SearchAlgorithm,
+  YForXResult,
+  CursorProps,
+
+  // Pie chart types
+  PieDataPoint,
+
+  // Candlestick types
+  Candle,
+  Domain,
+  AxisLinePathEffect,
+  CandleStickChartProps,
+} from 'rn-cute-charts';
+```
+
+---
 
 ## To Do
 
-- [ ] TypeScript definitions
-- [ ] Add support real time data visualisation
-- [ ] Volume chart support
-- [ ] Multiple chart overlays
-- [ ] More gesture controls for line charts
-- [ ] Custom Y-axis labels
-- [ ] More chart types
+- [ ] Mount entry animations for charts
+- [ ] Easing config prop for linear animation
+- [ ] Real-time data support for candlestick and timeseries charts
+- [ ] stacked bar charts
+- [ ] migrate to gesture handler v3
 
 ## Contributing
 
 Found a bug or have a feature request? Open an issue on [GitHub](https://github.com/DivyanshuShekhar55/rn-cute-stocks/issues).
 
-Pull requests are welcome! Just make sure your code follows the existing style.
+Pull requests are welcome. Follow the existing code style and make sure types are exported.
 
 ## License
 
 MIT © [Divyanshu Shekhar](https://github.com/DivyanshuShekhar55)
-
