@@ -94,7 +94,7 @@ const LineChart = ({
               strokeWidth={curveStrokeWidth}
               // color is required by Skia's Path even when using LinearGradient child
               // the gradient overrides the actual fill/stroke color at render time
-              color="transparent"
+              color="#fff"
             >
               <LinearGradient
                 start={vec(0, 0)}
