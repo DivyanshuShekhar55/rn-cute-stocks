@@ -188,6 +188,10 @@ animationConfig={{ duration: 300 }}
 - Supports gradient colours for the curve
 - Supports multiple types of curve
 
+<p align="center">
+  <img src="./assests/images/linechart_main.png" width=300 height=300 />
+</p>
+
 ### Quick Start
 
 ```tsx

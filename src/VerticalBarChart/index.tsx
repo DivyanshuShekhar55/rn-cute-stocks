@@ -355,12 +355,25 @@ const VerticalBarChart = ({
           scrollEnabled={false}
           showsHorizontalScrollIndicator={false}
           style={{ marginLeft: yAxisWidth, width: fixedChartWindow }}
-          contentContainerStyle={{ flexDirection: "row" }}
+          // the reason for contentContainerStyles is given in renderXLabels() func.
+          contentContainerStyle={{
+            position: "relative",
+            width: chartWidth,
+            height: xAxisHeight,
+          }}
         >
           {renderXLabels()}
         </Animated.ScrollView>
       ) : (
-        <View style={{ flexDirection: "row", marginLeft: yAxisWidth }}>
+        // the reason for position: relative is given in renderXLabels() func.
+        <View
+          style={{
+            marginLeft: yAxisWidth,
+            width: chartWidth,
+            position: "relative",
+            height: xAxisHeight,
+          }}
+        >
           {renderXLabels()}
         </View>
       )}
@@ -369,24 +382,32 @@ const VerticalBarChart = ({
 
   function renderXLabels(): React.ReactElement[] {
     return xAxisLabels.map((label, index) => {
-      const bw = xScale.bandwidth();
+      // We repeat the same calculations as in positioning of bars
+      // this assures labels are perfectly in center of bars
+      // we apply a pos = absolute here, so need to apply position relative to parent of this component
+      // so in the logic of {scrollable ? () : ()} we add the relative positioning to view in case of non-scrollable
+      // add contentContainerStyles to Animated.ScrollView in scrolable case
+      const barLeft = xScale(label) || 0;
+      const horizontalOffset =
+        (chartWidth / labelCount - xScale.bandwidth()) / 2;
+      const barCenter = barLeft + horizontalOffset + xScale.bandwidth() / 2;
       const isActive = activeIndex === index;
+
       return (
         <View
           key={label}
           style={{
-            width: chartWidth / labelCount ,
+            position: "absolute",
+            left: barCenter - xScale.bandwidth() / 2,
+            width: xScale.bandwidth(),
             alignItems: "center",
-            // the below might be causing the weird label alignment 
-            // marginHorizontal: (chartWidth / labelCount - bw) / 2,
           }}
         >
           <Text
             style={[
               styles.xAxisText,
-              isActive
-                ? [styles.activeXAxisText, { color: labelActiveFontColor }]
-                : undefined,
+              { color: isActive ? labelActiveFontColor : labelFontColor },
+              isActive ? styles.activeXAxisText : undefined,
             ]}
           >
             {label}
