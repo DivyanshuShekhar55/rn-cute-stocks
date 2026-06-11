@@ -15,9 +15,11 @@ A performant, interactive chart library for React Native. Built with Skia and Re
 
 Install peer dependencies first.
 These are the dependencies you will have by default probably in any app with "cool" animations. Namely : skia, reanimated, gesture-handler and worklets.
+
 ```bash
 npm install @shopify/react-native-skia react-native-reanimated react-native-gesture-handler react-native-worklets
 ```
+
 Then install d3.js dependencies:
 
 ```bash
@@ -53,13 +55,17 @@ npm install rn-cute-charts
 - All UI rendered with Skia
 - Scroll sync between bars and X-axis labels runs on the UI thread (zero lag)
 
+<p align="center">
+  <img src="./assests/images/verticalBar_main.png" width=300 height=300 />
+</p>
+
 ### Quick Start
 
 ```tsx
-import { VerticalBarChart } from 'rn-cute-charts';
-import type { BarDataItem } from 'rn-cute-charts';
+import { VerticalBarChart } from "rn-cute-charts";
+import type { BarDataItem } from "rn-cute-charts";
 
-const data : BarDataItem[] = [
+const data: BarDataItem[] = [
   { x: "Mon", y: 120 },
   { x: "Tue", y: 180 },
   { x: "Wed", y: 134 },
@@ -80,20 +86,22 @@ export default function App() {
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Chart width |
-| `height` | `number` | **required** | Chart height |
-| `data` | `BarDataItem[]` | **required** | Array of `{ x: string, y: number }` |
-| `color` | `string` | `"#9672f8"` | Default bar color |
-| `activeColor` | `string` | `"#ff7e5f"` | Color of the tapped/active bar |
-| `barGap` | `number` | `0.2` | Padding ratio between bars (0–1) |
-| `bend` | `number` | `10` | Top corner radius of bars |
-| `numYLabels` | `number` | `3` | Number of Y-axis tick labels |
-| `scrollable` | `boolean` | `false` | Enable horizontal scroll when bars are too many to fit |
-| `minBarWidth` | `number` | `25` | Minimum bar width in px when scrollable |
-| `animationType` | `AnimationType` | `"spring"` | Tap animation: `"spring"`, `"linear"`, or `"none"` |
-| `animationConfig` | `AnimationConfig` | see below | Config for the animation driver |
+| Prop                   | Type              | Default      | Description                                            |
+| ---------------------- | ----------------- | ------------ | ------------------------------------------------------ |
+| `width`                | `number`          | **required** | Chart width                                            |
+| `height`               | `number`          | **required** | Chart height                                           |
+| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                    |
+| `color`                | `string`          | `"#9672f8"`  | Default bar color                                      |
+| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                         |
+| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                       |
+| `bend`                 | `number`          | `10`         | Top corner radius of bars                              |
+| `numYLabels`           | `number`          | `3`          | Number of Y-axis tick labels                           |
+| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                      |
+| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected                 |
+| `scrollable`           | `boolean`         | `false`      | Enable horizontal scroll when bars are too many to fit |
+| `minBarWidth`          | `number`          | `25`         | Minimum bar width in px when scrollable                |
+| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`     |
+| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                        |
 
 ---
 
@@ -106,13 +114,17 @@ export default function App() {
 - Optional vertical scroll with sticky top numeric axis
 - Scroll sync between bars and category labels runs on UI thread
 
+<p align="center">
+  <img src="./assests/images/horizontalBar_main.png" width=300 height=300 />
+</p>
+
 ### Quick Start
 
 ```tsx
-import { HorizontalBarChart } from 'rn-cute-charts';
-import type { BarDataItem } from 'rn-cute-charts';
+import { HorizontalBarChart } from "rn-cute-charts";
+import type { BarDataItem } from "rn-cute-charts";
 
-const data : BarDataItem[] = [
+const data: BarDataItem[] = [
   { x: "Sales", y: 40 },
   { x: "Support", y: 25 },
   { x: "Marketing", y: 20 },
@@ -133,20 +145,22 @@ export default function App() {
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Chart width |
-| `height` | `number` | **required** | Chart height |
-| `data` | `BarDataItem[]` | **required** | Array of `{ x: string, y: number }` |
-| `color` | `string` | `"#9672f8"` | Default bar color |
-| `activeColor` | `string` | `"#ff7e5f"` | Color of the tapped/active bar |
-| `barGap` | `number` | `0.2` | Padding ratio between bars (0–1) |
-| `bend` | `number` | `10` | Right corner radius of bars |
-| `numXLabels` | `number` | `3` | Number of X-axis (numeric) tick labels |
-| `scrollable` | `boolean` | `false` | Enable vertical scroll when bars are too many to fit |
-| `minBarHeight` | `number` | `25` | Minimum bar height in px when scrollable |
-| `animationType` | `AnimationType` | `"spring"` | Tap animation: `"spring"`, `"linear"`, or `"none"` |
-| `animationConfig` | `AnimationConfig` | see below | Config for the animation driver |
+| Prop                   | Type              | Default      | Description                                          |
+| ---------------------- | ----------------- | ------------ | ---------------------------------------------------- |
+| `width`                | `number`          | **required** | Chart width                                          |
+| `height`               | `number`          | **required** | Chart height                                         |
+| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                  |
+| `color`                | `string`          | `"#9672f8"`  | Default bar color                                    |
+| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                       |
+| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                     |
+| `bend`                 | `number`          | `10`         | Right corner radius of bars                          |
+| `numXLabels`           | `number`          | `3`          | Number of X-axis (numeric) tick labels               |
+| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                    |
+| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected               |
+| `scrollable`           | `boolean`         | `false`      | Enable vertical scroll when bars are too many to fit |
+| `minBarHeight`         | `number`          | `25`         | Minimum bar height in px when scrollable             |
+| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`   |
+| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                      |
 
 ---
 
@@ -173,10 +187,10 @@ animationConfig={{ duration: 300 }}
 ### Quick Start
 
 ```tsx
-import { LineChart } from 'rn-cute-charts';
-import type { LineDataPoint } from 'rn-cute-charts';
+import { LineChart } from "rn-cute-charts";
+import type { LineDataPoint } from "rn-cute-charts";
 
-const data : LineDataPoint[] = [
+const data: LineDataPoint[] = [
   { x: "Week 1", y: 120 },
   { x: "Week 2", y: 145 },
   { x: "Week 3", y: 132 },
@@ -188,7 +202,7 @@ export default function App() {
       width={350}
       height={300}
       chartData={data}
-      colors={['#9672f8', '#ff7e5f']}
+      colors={["#9672f8", "#ff7e5f"]}
       curveType="curveBasis"
       valuePrefix="$"
     />
@@ -198,19 +212,19 @@ export default function App() {
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Chart canvas width |
-| `height` | `number` | **required** | Chart canvas height |
-| `chartData` | `LineDataPoint[]` | **required** | Array of `{ x: string, y: number }` |
-| `colors` | `string[]` | `["#000"]` | Gradient colors for the chart line |
-| `curveType` | `CurveType` | `"curveBasis"` | Curve interpolation type (see below) |
-| `curveStrokeWidth` | `number` | `2` | Line stroke width |
-| `curveFill` | `"stroke" \| "fill"` | `"stroke"` | Fill or stroke the path |
-| `valuePrefix` | `string` | `""` | Prefix for the displayed value e.g. `"$"`, `"€"` |
-| `valueTextStyles` | `TextStyle` | `{}` | Styles for the value label above the chart |
-| `chartContainerStyles` | `ViewStyle` | `{}` | Styles for the outer container |
-| `cursorComponent` | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component |
+| Prop                   | Type                                   | Default        | Description                                      |
+| ---------------------- | -------------------------------------- | -------------- | ------------------------------------------------ |
+| `width`                | `number`                               | **required**   | Chart canvas width                               |
+| `height`               | `number`                               | **required**   | Chart canvas height                              |
+| `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`              |
+| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line               |
+| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)             |
+| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                          |
+| `valuePrefix`          | `string`                               | `""`           | Prefix for the displayed value e.g. `"$"`, `"€"` |
+| `valueTextStyles`      | `TextStyle`                            | `{}`           | Styles for the value label above the chart       |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                   |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                          |
 
 ---
 
@@ -221,10 +235,10 @@ For timestamp-based data (stock prices, sensor data). Uses `scaleTime` so points
 ### Quick Start
 
 ```tsx
-import { TimeSeriesChart } from 'rn-cute-charts';
-import type { TimeSeriesDataPoint } from 'rn-cute-charts';
+import { TimeSeriesChart } from "rn-cute-charts";
+import type { TimeSeriesDataPoint } from "rn-cute-charts";
 
-const data : TimeSeriesDataPoint[] = [
+const data: TimeSeriesDataPoint[] = [
   { x: 1704067200000, y: 150.5 },
   { x: 1704153600000, y: 152.3 },
   { x: 1704240000000, y: 148.7 },
@@ -236,7 +250,7 @@ export default function App() {
       width={350}
       height={300}
       chartData={data}
-      colors={['#3b82f6', '#8b5cf6']}
+      colors={["#3b82f6", "#8b5cf6"]}
       curveType="curveBumpX"
     />
   );
@@ -245,52 +259,52 @@ export default function App() {
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Chart canvas width |
-| `height` | `number` | **required** | Chart canvas height |
-| `chartData` | `TimeSeriesDataPoint[]` | **required** | Array of `{ x: number, y: number }` where `x` is Unix ms |
-| `colors` | `string[]` | `["#000"]` | Gradient colors for the chart line |
-| `curveType` | `CurveType` | `"curveBasis"` | Curve interpolation type |
-| `curveStrokeWidth` | `number` | `2` | Line stroke width |
-| `curveFill` | `"stroke" \| "fill"` | `"stroke"` | Fill or stroke the path |
-| `priceTextStyles` | `TextStyle` | `{}` | Styles for the price label above the chart |
-| `chartContainerStyles` | `ViewStyle` | `{}` | Styles for the outer container |
-| `cursorComponent` | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component |
-| `ySearch` | `SearchAlgorithm` | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan |
+| Prop                   | Type                                   | Default                           | Description                                              |
+| ---------------------- | -------------------------------------- | --------------------------------- | -------------------------------------------------------- |
+| `width`                | `number`                               | **required**                      | Chart canvas width                                       |
+| `height`               | `number`                               | **required**                      | Chart canvas height                                      |
+| `chartData`            | `TimeSeriesDataPoint[]`                | **required**                      | Array of `{ x: number, y: number }` where `x` is Unix ms |
+| `colors`               | `string[]`                             | `["#000"]`                        | Gradient colors for the chart line                       |
+| `curveType`            | `CurveType`                            | `"curveBasis"`                    | Curve interpolation type                                 |
+| `curveStrokeWidth`     | `number`                               | `2`                               | Line stroke width                                        |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`                        | Fill or stroke the path                                  |
+| `priceTextStyles`      | `TextStyle`                            | `{}`                              | Styles for the price label above the chart               |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`                              | Styles for the outer container                           |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor                    | Custom cursor component                                  |
+| `ySearch`              | `SearchAlgorithm`                      | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan                            |
 
 ### Line vs Time Series — which to use?
 
-| | `LineChart` | `TimeSeriesChart` |
-|---|---|---|
-| X-axis data | Any string label | Unix timestamp (ms) |
-| Point spacing | Always equal | Proportional to time gap |
-| Use case | categories and custom labels | Stock prices, sensor readings |
-| X lookup | O(1) direct index | Binary search + interpolation |
+|               | `LineChart`                  | `TimeSeriesChart`             |
+| ------------- | ---------------------------- | ----------------------------- |
+| X-axis data   | Any string label             | Unix timestamp (ms)           |
+| Point spacing | Always equal                 | Proportional to time gap      |
+| Use case      | categories and custom labels | Stock prices, sensor readings |
+| X lookup      | O(1) direct index            | Binary search + interpolation |
 
 ### Curve Types (both line charts)
 
-| Value | Description |
-|---|---|
-| `"curveBasis"` | Smooth bezier (default) |
-| `"curveBumpX"` | Bump curve, good for time-series |
-| `"curveLinear"` | Straight lines between points |
-| `"curveMonotoneX"` | Monotone cubic interpolation |
-| `"natural"` | Natural cubic spline |
+| Value              | Description                      |
+| ------------------ | -------------------------------- |
+| `"curveBasis"`     | Smooth bezier (default)          |
+| `"curveBumpX"`     | Bump curve, good for time-series |
+| `"curveLinear"`    | Straight lines between points    |
+| `"curveMonotoneX"` | Monotone cubic interpolation     |
+| `"natural"`        | Natural cubic spline             |
 
 ### Custom Cursor
 
 Both line charts accept a `cursorComponent` prop:
 
 ```tsx
-import { Circle } from '@shopify/react-native-skia';
-import type { CursorProps } from 'rn-cute-charts';
+import { Circle } from "@shopify/react-native-skia";
+import type { CursorProps } from "rn-cute-charts";
 
 const CustomCursor = ({ xPos, yPos }: CursorProps) => (
   <Circle cx={xPos} cy={yPos} r={8} color="#ff6b6b" />
 );
 
-<LineChart {...props} cursorComponent={CustomCursor} />
+<LineChart {...props} cursorComponent={CustomCursor} />;
 ```
 
 ---
@@ -302,41 +316,39 @@ const CustomCursor = ({ xPos, yPos }: CursorProps) => (
 - Tap a slice to highlight it (pops out slightly) and show a label bubble with value and percentage
 - Donut mode via `donut` + `innerRadiusRatio` props
 
+<p align="center">
+  <img src="./assests/images/donut_main.png" width=420 height=300 />
+</p>
+
 ### Quick Start
 
 ```tsx
-import { PieChart } from 'rn-cute-charts';
-import type { PieDataPoint } from 'rn-cute-charts';
+import { PieChart } from "rn-cute-charts";
+import type { PieDataPoint } from "rn-cute-charts";
 
-const data : PieDataPoint[] = [
-  { label: "Sales",     value: 40, color: "#FF6B6B" },
-  { label: "Support",   value: 25, color: "#4ECDC4" },
+const data: PieDataPoint[] = [
+  { label: "Sales", value: 40, color: "#FF6B6B" },
+  { label: "Support", value: 25, color: "#4ECDC4" },
   { label: "Marketing", value: 20, color: "#45B7D1" },
-  { label: "Ops",       value: 15, color: "#FFA07A" },
+  { label: "Ops", value: 15, color: "#FFA07A" },
 ];
 
 export default function App() {
-  return (
-    <PieChart
-      width={300}
-      height={300}
-      data={data}
-    />
-  );
+  return <PieChart width={300} height={300} data={data} />;
 }
 ```
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Chart width |
-| `height` | `number` | **required** | Chart height |
-| `data` | `PieDataPoint[]` | **required** | Array of `{ label, value, color }` |
-| `donut` | `boolean` | `false` | Render as a donut chart |
-| `innerRadiusRatio` | `number` | `0.6` | Inner hole size as ratio of outer radius (only when `donut=true`) |
-| `labelBgColor` | `string` | `"#333"` | Background color of the tap label bubble |
-| `labelFontColor` | `string` | `"#fff"` | Text color of the tap label bubble |
+| Prop               | Type             | Default      | Description                                                       |
+| ------------------ | ---------------- | ------------ | ----------------------------------------------------------------- |
+| `width`            | `number`         | **required** | Chart width                                                       |
+| `height`           | `number`         | **required** | Chart height                                                      |
+| `data`             | `PieDataPoint[]` | **required** | Array of `{ label, value, color }`                                |
+| `donut`            | `boolean`        | `false`      | Render as a donut chart                                           |
+| `innerRadiusRatio` | `number`         | `0.6`        | Inner hole size as ratio of outer radius (only when `donut=true`) |
+| `labelBgColor`     | `string`         | `"#333"`     | Background color of the tap label bubble                          |
+| `labelFontColor`   | `string`         | `"#fff"`     | Text color of the tap label bubble                                |
 
 ---
 
@@ -350,13 +362,17 @@ export default function App() {
 - Auto-scaling axes (price and time)
 - Dashed, solid, or no axis grid lines
 
+<p align="center">
+  <img src="./assests/images/candlechart_main.jpeg" width=300 height=300 />
+</p>
+
 ### Quick Start
 
 ```tsx
-import { CandleStickChart } from 'rn-cute-charts';
-import type { Candle } from 'rn-cute-charts';
+import { CandleStickChart } from "rn-cute-charts";
+import type { Candle } from "rn-cute-charts";
 
-const data : Candle[] = [
+const data: Candle[] = [
   { timestamp: 1704067200, open: 150.5, high: 152.8, low: 149.2, close: 151.3 },
   { timestamp: 1704070800, open: 151.3, high: 153.5, low: 150.8, close: 152.1 },
 ];
@@ -376,40 +392,45 @@ export default function App() {
 
 ### API Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | **required** | Total chart width including axis margins |
-| `height` | `number` | **required** | Total chart height including axis margins |
-| `data` | `Candle[]` | **required** | Array of OHLC candles with Unix second timestamps |
-| `bgCol` | `string` | `"white"` | Background color |
-| `fill` | `[string, string]` | `["green","red"]` | Colors for bullish and bearish candles |
-| `currency` | `string` | `"$"` | Currency symbol for crosshair price label |
-| `labelFontSize` | `number` | `18` | Font size for crosshair price label |
-| `labelRightOffset` | `number` | `96` | Right offset for crosshair price label |
-| `labelFontCol` | `string` | `"black"` | Color of crosshair price label |
-| `numLabels` | `number` | `5` | Number of labels on each axis |
-| `axisFontColor` | `string` | `"black"` | Axis label text color |
-| `axisFontSize` | `number` | `14` | Axis label font size |
-| `axisLabelRightOffset` | `number` | `54` | Space reserved on right for Y-axis labels |
-| `axisLabelBottomOffset` | `number` | `20` | Space reserved at bottom for X-axis labels |
-| `axisLinePathEffect` | `AxisLinePathEffect` | `"dashed"` | Grid line style: `"dashed"`, `"line"`, or `"none"` |
-| `axisLineColor` | `string` | `"gray"` | Grid line color |
-| `wickColor` | `string` | `"rgba(255,255,255,0.6)"` | Candle wick color |
-| `crossHairColor` | `string` | `"rgba(255,255,255,0.6)"` | Crosshair line color |
-| `maxVisibleCandles` | `number` | `50` | Zoom-out limit |
-| `minVisibleCandles` | `number` | `10` | Zoom-in limit |
+| Prop                    | Type                 | Default                   | Description                                        |
+| ----------------------- | -------------------- | ------------------------- | -------------------------------------------------- |
+| `width`                 | `number`             | **required**              | Total chart width including axis margins           |
+| `height`                | `number`             | **required**              | Total chart height including axis margins          |
+| `data`                  | `Candle[]`           | **required**              | Array of OHLC candles with Unix second timestamps  |
+| `bgCol`                 | `string`             | `"white"`                 | Background color                                   |
+| `fill`                  | `[string, string]`   | `["green","red"]`         | Colors for bullish and bearish candles             |
+| `currency`              | `string`             | `"$"`                     | Currency symbol for crosshair price label          |
+| `labelFontSize`         | `number`             | `18`                      | Font size for crosshair price label                |
+| `labelRightOffset`      | `number`             | `96`                      | Right offset for crosshair price label             |
+| `labelFontCol`          | `string`             | `"black"`                 | Color of crosshair price label                     |
+| `numLabels`             | `number`             | `5`                       | Number of labels on each axis                      |
+| `axisFontColor`         | `string`             | `"black"`                 | Axis label text color                              |
+| `axisFontSize`          | `number`             | `14`                      | Axis label font size                               |
+| `axisLabelRightOffset`  | `number`             | `54`                      | Space reserved on right for Y-axis labels          |
+| `axisLabelBottomOffset` | `number`             | `20`                      | Space reserved at bottom for X-axis labels         |
+| `axisLinePathEffect`    | `AxisLinePathEffect` | `"dashed"`                | Grid line style: `"dashed"`, `"line"`, or `"none"` |
+| `axisLineColor`         | `string`             | `"gray"`                  | Grid line color                                    |
+| `wickColor`             | `string`             | `"rgba(255,255,255,0.6)"` | Candle wick color                                  |
+| `crossHairColor`        | `string`             | `"rgba(255,255,255,0.6)"` | Crosshair line color                               |
+| `maxVisibleCandles`     | `number`             | `50`                      | Zoom-out limit                                     |
+| `minVisibleCandles`     | `number`             | `10`                      | Zoom-in limit                                      |
 
 ### Gesture Controls
 
-| Fingers | Gesture | Action |
-|---|---|---|
-| 1 | Pan | Crosshair — snaps to nearest candle center |
-| 2 | Pinch | Zoom in/out around focal point |
-| 3 | Pan | Scroll left/right through history |
+| Fingers | Gesture | Action                                     |
+| ------- | ------- | ------------------------------------------ |
+| 1       | Pan     | Crosshair — snaps to nearest candle center |
+| 2       | Pinch   | Zoom in/out around focal point             |
+| 3       | Pan     | Scroll left/right through history          |
 
 ### Layout
 
+<p align="center">
+  <img src="./assests/images/candlechart_layout.png" width=500 height=320 />
+</p>
+
 The chart automatically calculates:
+
 - **Chart region width** = `width - axisLabelRightOffset`
 - **Chart region height** = `height - axisLabelBottomOffset`
 
@@ -446,7 +467,7 @@ import type {
   Domain,
   AxisLinePathEffect,
   CandleStickChartProps,
-} from 'rn-cute-charts';
+} from "rn-cute-charts";
 ```
 
 ---
