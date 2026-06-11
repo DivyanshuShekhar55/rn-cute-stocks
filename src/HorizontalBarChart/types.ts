@@ -11,6 +11,10 @@ export interface HorizontalBarChartProps {
   barGap?: number;
   bend?: number;
   numXLabels?: number;
+
+  labelFontColor?: string;
+  labelActiveFontColor?: string;
+
   /** If true, bars scroll vertically; category labels stay sticky on left. Default: false */
   scrollable?: boolean;
   /** Minimum bar height in px when scrollable. Default: 25 */

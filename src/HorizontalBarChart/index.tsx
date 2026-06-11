@@ -35,6 +35,8 @@ const HorizontalBarChart = ({
   barGap = 0.2,
   bend = 10,
   numXLabels = 3,
+  labelFontColor = "#f0f0f0",
+  labelActiveFontColor = "#fff",
   scrollable = true,
   minBarHeight = MIN_BAR_HEIGHT_DEFAULT,
   animationType = "spring",
@@ -263,7 +265,10 @@ const HorizontalBarChart = ({
           <Text
             style={[
               styles.yAxisText,
-              isActive ? styles.activeYAxisText : undefined,
+              { color: labelFontColor },
+              isActive
+                ? [styles.activeYAxisText, { color: labelActiveFontColor }]
+                : undefined,
             ]}
           >
             {label}
@@ -289,7 +294,11 @@ const HorizontalBarChart = ({
             key={i}
             style={[
               styles.xAxisText,
-              { position: "absolute", left: xScale(tick) - textOffset },
+              {
+                position: "absolute",
+                left: xScale(tick) - textOffset,
+                color: labelFontColor,
+              },
             ]}
           >
             {tick}
@@ -340,16 +349,13 @@ const HorizontalBarChart = ({
 const styles = StyleSheet.create({
   xAxisText: {
     fontSize: 12,
-    color: "#666",
     fontWeight: "600",
   },
   yAxisText: {
     fontSize: 12,
-    color: "#666",
     textAlign: "right",
   },
   activeYAxisText: {
-    color: "#000",
     fontWeight: "bold",
   },
   valueBadge: {

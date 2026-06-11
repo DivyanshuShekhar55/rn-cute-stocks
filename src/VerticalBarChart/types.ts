@@ -1,4 +1,4 @@
-// Types 
+// Types
 
 import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
 
@@ -15,6 +15,10 @@ export interface BarChartProps {
   barGap?: number;
   bend?: number;
   numYLabels?: number;
+
+  labelFontColor?: string;
+  labelActiveFontColor?: string;
+
   // if true, bars can scroll horizontally, y-axis stays sticky
   // by default is false
   scrollable?: boolean;

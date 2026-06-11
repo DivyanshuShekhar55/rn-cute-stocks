@@ -17,7 +17,10 @@ import { Canvas, Group, Rect, RoundedRect } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { LinearAnimationConfig, SpringAnimationConfig } from "../shared/types";
 import { BarChartProps } from "./types";
-import { DEFAULT_LINEAR_CONFIG, DEFAULT_SPRING_CONFIG } from "../shared/constants";
+import {
+  DEFAULT_LINEAR_CONFIG,
+  DEFAULT_SPRING_CONFIG,
+} from "../shared/constants";
 
 const MIN_BAR_WIDTH_DEFAULT = 25;
 
@@ -31,12 +34,13 @@ const VerticalBarChart = ({
   barGap = 0.2, // ratio of area we would like to pad
   bend = 10,
   numYLabels = 3,
+  labelFontColor = "#f0f0f0",
+  labelActiveFontColor = "#fff",
   scrollable = false,
   minBarWidth = MIN_BAR_WIDTH_DEFAULT,
   animationType = "spring",
   animationConfig,
 }: BarChartProps): React.ReactElement => {
-
   // we extract the x and y labels so this map operation isn't performed again and again
   const xAxisLabels = data.map((val) => val.x);
   const yAxisLabels = data.map((val) => val.y);
@@ -228,11 +232,11 @@ const VerticalBarChart = ({
                 height: barHeight,
               },
               // Top corners receive your smooth bend radii values
-              topLeft:  { x: bend, y: bend },
+              topLeft: { x: bend, y: bend },
               topRight: { x: bend, y: bend },
               // Bottom corners stay flat (0) so they anchor cleanly to the baseline floor
               bottomRight: { x: 0, y: 0 },
-              bottomLeft:  { x: 0, y: 0 },
+              bottomLeft: { x: 0, y: 0 },
             };
 
             return (
@@ -277,7 +281,7 @@ const VerticalBarChart = ({
                   styles.valueBadge,
                   {
                     left: finalizedXPosition + barWidth / 2 - 20, // Center bubble over active index width
-                    top: chartHeight - barHeight - 32,             // Float cleanly above the bar top edge
+                    top: chartHeight - barHeight - 32, // Float cleanly above the bar top edge
                   },
                 ]}
               >
@@ -294,7 +298,6 @@ const VerticalBarChart = ({
     <View style={{ width, height, marginTop: 50, marginLeft: 20 }}>
       {/* CHART AREA: y-axis labels + bars side by side */}
       <View style={{ flexDirection: "row", height: chartHeight }}>
-
         {/* Y-AXIS LABELS — absolutely positioned within chartHeight */}
         <View
           style={{
@@ -312,6 +315,7 @@ const VerticalBarChart = ({
                   position: "absolute",
                   top: yScale(label) - textOffset,
                   right: 8,
+                  color: labelFontColor,
                 },
               ]}
             >
@@ -376,7 +380,14 @@ const VerticalBarChart = ({
             marginHorizontal: (chartWidth / labelCount - bw) / 2,
           }}
         >
-          <Text style={[styles.xAxisText, isActive ? styles.activeXAxisText : undefined]}>
+          <Text
+            style={[
+              styles.xAxisText,
+              isActive
+                ? [styles.activeXAxisText, { color: labelActiveFontColor }]
+                : undefined,
+            ]}
+          >
             {label}
           </Text>
         </View>
@@ -390,17 +401,14 @@ const VerticalBarChart = ({
 const styles = StyleSheet.create({
   yAxisText: {
     fontSize: 12,
-    color: "#666",
     fontWeight: "600",
   },
   xAxisText: {
     fontSize: 12,
-    color: "#666",
     marginTop: 8,
     textAlign: "center",
   },
   activeXAxisText: {
-    color: "#000",
     fontWeight: "bold",
   },
   valueBadge: {

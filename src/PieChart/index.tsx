@@ -9,7 +9,7 @@ const PieChart = ({
   width,
   height,
   data ,
-  donut = true,
+  donut = false,
   innerRadiusRatio = 0.9,
   labelBgColor = "#333",
   labelFontColor = "#fff",
