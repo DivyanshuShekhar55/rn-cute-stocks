@@ -1,6 +1,10 @@
 # rn-cute-charts
 
-A performant, interactive chart library for React Native. Built with Skia and Reanimated for smooth animations and D3 for precise calculations.
+[![npm version](https://img.shields.io/npm/v/rn-cute-charts.svg?style=flat-square)](https://www.npmjs.com/package/rn-cute-charts)
+[![npm downloads](https://img.shields.io/npm/dw/rn-cute-charts.svg?style=flat-square)](https://www.npmjs.com/package/rn-cute-charts)
+[![license](https://img.shields.io/npm/l/rn-cute-charts.svg?style=flat-square)](https://www.npmjs.com/package/rn-cute-charts)
+
+A high-performance, delightful charting library for React Native built on Skia and Reanimated.
 
 ## Charts Available
 
@@ -34,14 +38,14 @@ npm install rn-cute-charts
 
 ## Compatibility
 
-- React Native >= 0.79.0
+- React Native >= 0.83.0
 - React >= 19.0.0
 - iOS & Android
 
 ## Important Notes
 
 - Wrap your app in `GestureHandlerRootView` from `react-native-gesture-handler` (typically in your root layout file)
-- The library uses `react-native-worklets` for smooth updates via `scheduleOnRN()` to avoid blocking the JS thread
+- The library uses `react-native-worklets` for smooth updates via `scheduleOnRN()` to avoid blocking the JS thread (use version 0.8.0 or above)
 
 ---
 

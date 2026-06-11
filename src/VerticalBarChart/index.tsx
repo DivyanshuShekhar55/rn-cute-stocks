@@ -375,9 +375,10 @@ const VerticalBarChart = ({
         <View
           key={label}
           style={{
-            width: bw,
+            width: (chartWidth / labelCount - bw) / 2,
             alignItems: "center",
-            marginHorizontal: (chartWidth / labelCount - bw) / 2,
+            // the below might be causing the weird label alignment 
+            // marginHorizontal: (chartWidth / labelCount - bw) / 2,
           }}
         >
           <Text
