@@ -2,6 +2,16 @@
 // take the input domain -> convert(normalise) t [0, 1] range -> convert again (interpolate) to the given range
 // a transformation can happen before normalise, for example for linear its identity (inp=x => out=x), for log its (inp=x, out=Math.log(x))
 
+/**
+ * 
+ * @param x number 
+ * @returns number
+ * Returns same value as the given number
+ */
+function identity(x: number) {
+  return x;
+}
+
 /** 
   Accepts a range of numbers.
   Returns a function :
