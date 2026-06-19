@@ -1,6 +1,7 @@
 // Any scale function goes like this :
 // take the input domain -> convert(normalise) t [0, 1] range -> convert again (interpolate) to the given range
 // a transformation can happen before normalise, for example for linear its identity (inp=x => out=x), for log its (inp=x, out=Math.log(x))
+// TODO : add runtime safety for data types (use a=+a and Number())
 
 /**
  * 
@@ -8,7 +9,7 @@
  * @returns number
  * Returns same value as the given number
  */
-function identity(x: number) {
+export function identity(x: number) {
   return x;
 }
 
@@ -17,7 +18,7 @@ function identity(x: number) {
   Returns a function :
   returned function takes a number and converts it into [0, 1] range based on passed domain
 */
-function normalise(a: number, b: number) {
+export function normalise(a: number, b: number) {
   // check if b-a is 0, we handle it differently (like normalise (5, 5))
   // we reassign b = b-a, then check for condition
   return (b -= a)
@@ -33,7 +34,7 @@ function normalise(a: number, b: number) {
  * Clamps any value outside the given range.
  * Returns a function.
  */
-function clamper(a: number, b: number) {
+export function clamper(a: number, b: number) {
   if (a > b) {
     // if values were provided in reverse order (e.g. [100, 0]), just swap them
     [a, b] = [b, a];
@@ -46,7 +47,7 @@ function clamper(a: number, b: number) {
 /**
  * Interpolation function.
  */
-function interpolate(a: number, b: number) {
+export function interpolate(a: number, b: number) {
   return function (t: number) {
     return a * (1 - t) + b * t;
   };
@@ -57,7 +58,7 @@ function interpolate(a: number, b: number) {
  *
  * We combine these two steps here.
  */
-function bimap(domain: [number, number], range: [number, number]) {
+export function bimap(domain: [number, number], range: [number, number]) {
   // extract the domain and range value
   const [d0, d1] = domain;
   const [r0, r1] = range;
