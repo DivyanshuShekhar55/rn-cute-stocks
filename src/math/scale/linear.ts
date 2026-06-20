@@ -63,4 +63,28 @@ export function scaleLinear() {
     // inavalidate cache
     return rescale();
   };
+
+  // getter and setter, same pattern as domain
+  scale.range = function (r?: [number, number]) {
+    if (r === undefined) return range.slice() as [number, number];
+
+    // Number() here too — range values could also come in as strings
+    // from untyped/runtime call sites
+    range = [Number(r[0]), Number(r[1])];
+
+    return rescale();
+  };
+
+  // getter and setter for clamping
+  // clamp = true means values outside domain get pinned to domain edges
+  // before being passed through the scale, instead of extrapolating
+  scale.clamp = function (c?: boolean) {
+    if (c === undefined) return clampFunc !== identity;
+
+    clampFunc = c ? clamper(domain[0], domain[1]) : identity;
+    return rescale();
+  };
+
+  // without this, scaleLinear() returns undefined and nothing works
+  return scale;
 }
