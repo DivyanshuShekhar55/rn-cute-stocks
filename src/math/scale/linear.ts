@@ -1,7 +1,9 @@
+import { bimap, clamper, identity } from "./continuous";
+
 /**
  * Scale Linear function returns a function which is based on a linear scale.
  */
-function scaleLinear() {
+export function scaleLinear() {
   // this function is a closure because we want to cache things
 
   // we assume domain and range as [0, 1] by default
@@ -32,8 +34,10 @@ function scaleLinear() {
     if (x == null || isNaN(x)) return undefined;
 
     // create & cache output, if not present
+    // this "builds" the output function
     if (!output) output = bimap(domain, range);
 
+    // this calls the output function
     // clamp x, then return the corresponding value belonging in the range
     return output(clampFunc(x));
   }
@@ -52,6 +56,8 @@ function scaleLinear() {
     if (d === undefined) return domain.slice() as [number, number];
 
     // if a new domain was given, update the domain
+    // Number() is a safety net, as the end user will insert the data (it's runtime and TS is not applicable)
+    // that data might come in form of strings for example
     domain = [Number(d[0]), Number(d[1])];
 
     // inavalidate cache
