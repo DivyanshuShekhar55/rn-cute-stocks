@@ -7,15 +7,11 @@ import {
   Skia,
   Circle,
 } from "@shopify/react-native-skia";
-import { GenerateStringPath, GetYForX } from "../math";
+import { GenerateStringPath, GetYForX } from "../math/index";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import {
-  useDerivedValue,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LineChartProps } from "./types";
 import { CursorProps } from "../shared/types";
 
@@ -35,10 +31,15 @@ const LineChart = ({
 }: LineChartProps): React.ReactElement | null => {
   if (!chartData || chartData.length === 0) return null;
 
-  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax, step } =
-    GenerateStringPath(curveType, chartData, width, height);
+  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax, step } = useMemo(
+    () => GenerateStringPath(curveType, chartData, width, height),
+    [curveType, chartData, width, height],
+  );
 
-  const skPath = strPath ? Skia.Path.MakeFromSVGString(strPath) : null;
+  const skPath = useMemo(
+    () => (strPath ? Skia.Path.MakeFromSVGString(strPath) : null),
+    [strPath],
+  );
 
   // scalePoint returns number | undefined — the ?? 0 is a safety fallback
   // in practice the first label is always in domain so this won't be 0
@@ -47,28 +48,27 @@ const LineChart = ({
 
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
-  const valueAnimatedVal = useSharedValue<number>(data[0].y);
 
   const [valueText, setValueText] = useState<string>(data[0].y.toFixed(2));
 
-  // valueAnimatedVal changes on UI thread — bridge to JS to update React state
-  // toFixed() returns a string, required to avoid "all text must be in <Text>" error
-  useDerivedValue(() => {
-    const txt = valueAnimatedVal.value.toFixed(2);
-    scheduleOnRN(setValueText, txt);
-  }, [valueAnimatedVal]);
+  const lastSetTime = useRef(0);
 
   const updateY = (clampedX: number): void => {
-    // LineChart uses O(1) lookup (no search algorithm arg needed — scalePoint is evenly spaced)
     const result = GetYForX(clampedX, width, data, height);
     yPos.value = result.yCoord;
-    valueAnimatedVal.value = withTiming(result.actualVal, { duration: 100 });
+
+    const now = Date.now();
+    if (now - lastSetTime.current > 100) {
+      // ~10 updates/sec — plenty readable for a number
+      lastSetTime.current = now;
+      setValueText(result.actualVal.toFixed(2));
+    }
   };
 
   const pan = Gesture.Pan().onUpdate((evt) => {
-    "worklet";
     const clamped = Math.max(xRangeMin, Math.min(xRangeMax, Number(evt.x)));
     xPos.value = clamped;
+
     scheduleOnRN(updateY, clamped);
   });
 
