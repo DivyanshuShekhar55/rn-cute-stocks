@@ -12,7 +12,7 @@ import React, { useState, useMemo } from "react";
 import { Platform, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
-import { FindDomain } from "../math";
+import { FindDomain } from "../math/pathGenerators";
 import { scheduleOnRN } from "react-native-worklets";
 import {
   AxisLinePathEffect,
