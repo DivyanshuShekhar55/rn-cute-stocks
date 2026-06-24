@@ -7,7 +7,7 @@ import {
   Skia,
   Circle,
 } from "@shopify/react-native-skia";
-import { GenerateStringPath, GetYForX } from "../math/index";
+import { GenerateStringPath, GetYForX } from "../math/pathGenerators";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";

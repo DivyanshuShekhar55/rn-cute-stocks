@@ -17,7 +17,7 @@ import {
 import {
   GenerateStringPath_TimeSeries,
   GetYForX_TimeSeries,
-} from "../math/index";
+} from "../math/pathGenerators";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
 import { useMemo, useRef, useState } from "react";
