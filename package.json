@@ -1,6 +1,6 @@
 {
   "name": "rn-cute-charts",
-  "version": "0.1.1",
+  "version": "0.2.0-beta.0",
   "description": "A playful, high-performance charting library for React Native built on Skia and Reanimated.",
   "homepage": "https://github.com/DivyanshuShekhar55/rn-cute-stocks#readme",
   "bugs": {
