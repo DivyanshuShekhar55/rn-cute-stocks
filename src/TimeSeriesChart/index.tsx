@@ -1,8 +1,8 @@
-/**
- * NOTE FOR CONTRIBUTORS:
- * Please read the LineChart component before reading this code.
- * Both the files share same architecture and almost similar code.
- * The LineChart component is more technically documented and explained.
+/*
+  NOTE FOR CONTRIBUTORS:
+  Please read the LineChart component before reading this code.
+  Both the files share same architecture and almost similar code.
+  The LineChart component is more technically documented and explained.
  */
 
 import { Text, View, StyleSheet } from "react-native";
@@ -39,6 +39,7 @@ const TimeSeriesChart = ({
   curveStrokeWidth = 2,
   curveFill = "stroke",
   ySearch = "binarySearchWithInterpolation",
+  valuePrefix = "",
 }: TimeSeriesChartProps): React.ReactElement | null => {
   if (!chartData || chartData.length === 0) return null;
 
@@ -60,7 +61,7 @@ const TimeSeriesChart = ({
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
-  const [priceText, setPriceText] = useState<string>(data[0].y.toFixed(2));
+  const [valueText, setValueText] = useState<string>(data[0].y.toFixed(2));
 
   // we no longer need a shared value + useDerivedValue bridge here.
   // updateY already runs on the JS thread (it's invoked via scheduleOnRN
@@ -81,7 +82,7 @@ const TimeSeriesChart = ({
     const now = Date.now();
     if (now - lastSetTime.current > 100) {
       lastSetTime.current = now;
-      setPriceText(result.actualVal.toFixed(2));
+      setValueText(result.actualVal.toFixed(2));
     }
   };
 
@@ -94,7 +95,10 @@ const TimeSeriesChart = ({
 
   return (
     <View style={[styles.container, chartContainerStyles]}>
-      <Text style={[styles.priceText, priceTextStyles]}>${priceText}</Text>
+      <Text style={[styles.priceText, priceTextStyles]}>
+        {valuePrefix}
+        {valueText}
+      </Text>
 
       <GestureDetector gesture={pan}>
         <Canvas style={{ width, height }}>
@@ -111,7 +115,7 @@ const TimeSeriesChart = ({
               strokeWidth={curveStrokeWidth}
               // color is required by Skia's Path even when using LinearGradient child
               // the gradient overrides the actual fill/stroke color at render time
-              color="transparent"
+              color="#fff"
             >
               <LinearGradient
                 start={vec(0, 0)}

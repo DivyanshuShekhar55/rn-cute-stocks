@@ -1,8 +1,8 @@
-/**
- * NOTE FOR CONTRIBUTORS :
- * Please Read Horizontal Bar chart component before reading vertical chart component.
- * Both the charts foolow the same architecture and contain almost similar code.
- * Horizontal Bar Chart is more technically documented and explained, the same reasoning maps to Vertical chart component.
+/*
+  NOTE FOR CONTRIBUTORS :
+  Please Read Horizontal Bar chart component before reading vertical chart component.
+  Both the charts foolow the same architecture and contain almost similar code.
+  Horizontal Bar Chart is more technically documented and explained, the same reasoning maps to Vertical chart component.
  */
 
 import { View, Text, StyleSheet, Platform } from "react-native";
@@ -80,6 +80,13 @@ const VerticalBarChart = ({
   const LINE_HEIGHT = FONT_SIZE * 1.2;
   const textOffset = LINE_HEIGHT / 2;
 
+  // category labels now live INSIDE the canvas (drawn in Skia, below the
+  // bars) instead of in a separate row below it — so chartHeight itself
+  // needs to set aside a strip for them. Bars only get to use the
+  // remaining space, barAreaHeight, not the full chartHeight.
+  const LABEL_AREA_HEIGHT = FONT_SIZE + 8;
+  const barAreaHeight = chartHeight - LABEL_AREA_HEIGHT;
+
   const maxValue = React.useMemo(() => max(yAxisLabels) || 1, [yAxisLabels]);
 
   // y-axis stays fixed regardless of scroll — only x scrolls in this chart
@@ -87,8 +94,8 @@ const VerticalBarChart = ({
     () =>
       scaleLinear<number, number>()
         .domain([0, maxValue])
-        .range([chartHeight, 0]),
-    [maxValue, chartHeight],
+        .range([barAreaHeight, 0]),
+    [maxValue, barAreaHeight],
   );
 
   const GRID_LINE_COLOR = "#666";
@@ -282,7 +289,7 @@ const VerticalBarChart = ({
               .map((label, i) => {
                 const index = firstVisibleIndex + i; // real index into full data
                 const value = yAxisLabels[index] ?? 0;
-                const barHeight = chartHeight - yScale(value);
+                const barHeight = barAreaHeight - yScale(value);
 
                 // bar's true position in the FULL (unwindowed) data space,
                 // then shift left by scrollOffset to land in the viewport
@@ -294,7 +301,7 @@ const VerticalBarChart = ({
                 const roundedBarGeometry = {
                   rect: {
                     x: finalizedXPosition,
-                    y: chartHeight - barHeight,
+                    y: barAreaHeight - barHeight,
                     width: barWidth,
                     height: barHeight,
                   },
@@ -310,7 +317,7 @@ const VerticalBarChart = ({
                 const labelTextWidth = labelWidths[index] ?? 0;
                 const labelX =
                   finalizedXPosition + barWidth / 2 - labelTextWidth / 2;
-                const labelY = chartHeight + FONT_SIZE + 4; // just below the bar baseline
+                const labelY = barAreaHeight + FONT_SIZE + 2; // just below the bar baseline, now inside the canvas's own height
 
                 return (
                   <Group key={`bar-${index}`}>
@@ -320,7 +327,7 @@ const VerticalBarChart = ({
                     <Group
                       origin={{
                         x: finalizedXPosition + barWidth / 2,
-                        y: chartHeight,
+                        y: barAreaHeight,
                       }}
                       transform={isActive ? skiaTransform : undefined}
                     >

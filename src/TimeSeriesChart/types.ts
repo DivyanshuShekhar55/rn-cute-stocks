@@ -49,4 +49,5 @@ export interface TimeSeriesChartProps {
   curveStrokeWidth?: number;
   curveFill?: "stroke" | "fill";
   ySearch?: SearchAlgorithm;
+  valuePrefix?:string
 }
