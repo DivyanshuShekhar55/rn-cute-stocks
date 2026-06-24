@@ -1,30 +1,46 @@
-import { View, Text, StyleSheet } from "react-native";
-import Animated, {
+import { View, Text, StyleSheet, Platform } from "react-native";
+import {
   useSharedValue,
   withSpring,
   withTiming,
   useDerivedValue,
   DerivedValue,
   Easing,
-  useAnimatedRef,
-  useAnimatedScrollHandler,
-  scrollTo,
+  withDecay,
+  useAnimatedReaction,
 } from "react-native-reanimated";
 import React, { useState } from "react";
 import { scaleBand, scaleLinear } from "d3-scale";
 import { max } from "d3-array";
-import { Canvas, Group, Rect, RoundedRect } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+  matchFont,
+  Rect,
+  RoundedRect,
+  Text as SkiaText,
+} from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { LinearAnimationConfig, SpringAnimationConfig } from "../shared/types";
+import {
+  LinearAnimationConfig,
+  SpringAnimationConfig,
+} from "../shared/types";
 import { HorizontalBarChartProps } from "./types";
 import {
   DEFAULT_LINEAR_CONFIG,
   DEFAULT_SPRING_CONFIG,
 } from "../shared/constants";
+import { scheduleOnRN } from "react-native-worklets";
 
 const MIN_BAR_HEIGHT_DEFAULT = 25;
 
-//  Component
+const fontFamily = Platform.select({ ios: "Helvetica", default: "serif" });
+const font = matchFont({
+  fontFamily,
+  fontSize: 14,
+  fontStyle: "italic",
+  fontWeight: "bold",
+});
 
 const HorizontalBarChart = ({
   width,
@@ -42,11 +58,10 @@ const HorizontalBarChart = ({
   animationType = "spring",
   animationConfig,
 }: HorizontalBarChartProps): React.ReactElement => {
-  const categoryLabels: string[] = data.map((d) => d.x);
-  const values: number[] = data.map((d) => d.y);
+  const categoryLabels = React.useMemo(() => data.map((d) => d.x), [data]);
+  const values = React.useMemo(() => data.map((d) => d.y), [data]);
   const LabelCount = data.length;
 
-  // ── Axis dimensions ───────────────────────────────────────────────────────
   const xAxisHeight = 0.1 * height; // numeric tick label strip at top
   const yAxisWidth = 0.18 * width; // category label strip on left
   const chartWidth = width - yAxisWidth; // horizontal drawing area (bars)
@@ -56,232 +71,291 @@ const HorizontalBarChart = ({
   const LINE_HEIGHT = FONT_SIZE * 1.2;
   const textOffset = LINE_HEIGHT / 2;
 
-  // ── Scales — always global across all data ────────────────────────────────
-
-  const maxValue = max(values) || 1;
+  const maxValue = React.useMemo(() => max(values) || 1, [values]);
 
   // xScale: linear — maps 0→maxValue to 0→chartWidth (bars grow rightward)
-  const xScale = scaleLinear<number, number>()
-    .domain([0, maxValue])
-    .range([0, chartWidth]);
+  // memoize this so we don't need to rebuild it everytime component re-renders
+  const xScale = React.useMemo(
+    () =>
+      scaleLinear<number, number>()
+        .domain([0, maxValue])
+        .range([0, chartWidth]),
+    [maxValue, chartWidth],
+  );
 
   // Numeric tick marks along the top
-  const xTicks: number[] = [0];
+  const xTicks: number[] = [];
+  // render 0 at baseline first, rest of numbers later
+  if (numXLabels !== 0) xTicks.push(0);
   for (let i = 1; i <= numXLabels; i++) {
-    xTicks[i] = Math.round(i * (maxValue / numXLabels));
+    // round off the label numbers to nearest tens value
+    // the following trick works as : if num=12 => math.round(12/10)*10 = 1*10 = 10
+    let indexVal = i * (maxValue / numXLabels);
+    xTicks[i] = Math.round(indexVal / 10) * 10;
   }
 
-  // yScale: band — maps category labels to vertical positions
-  // In scrollable mode we expand chartHeight so each band >= minBarHeight
+  // Logical full height of all bars stacked — only used to clamp scroll bounds.
+  // Bandheight is the space(height) available to a bar (includes bar+padding space)
+  // barGap is fraction of bandheight to be kept as padding space
+  // so 1-brGap is fractional space left for one bar
+  // total bandheight in the available drawable space is fixedChartHeight / LabelCount
   const naturalBandHeight = (fixedChartHeight / LabelCount) * (1 - barGap);
-
   const chartHeight: number = (() => {
     if (!scrollable) return fixedChartHeight;
+
+    // if scrollable, however number of bars will fit within the fixedChartHeight itself, so actually no need to scroll
     if (naturalBandHeight >= minBarHeight) return fixedChartHeight;
-    // back-calculate: bandHeight = total/LabelCount*(1-barGap)
-    // => total = bandHeight * LabelCount / (1-barGap)
+
+    // if bars won't fit, calculate how many pixels would they actually fit in
+    // bandheight_min * total number of bars (min bandheight = minBarHeight)
     return Math.ceil((minBarHeight * LabelCount) / (1 - barGap));
   })();
 
-  const yScale = scaleBand<string>()
-    .domain(categoryLabels)
-    .range([0, chartHeight])
-    .padding(barGap);
+  // how many pixels will we need to scroll to reach last bar
+  // if no scroll, we won't scroll and hence maxScroll = 0
+  const maxScroll = Math.max(0, chartHeight - fixedChartHeight);
 
+  // spread domain of labels to range from 0 to chartHeight (total pixels we need)
+  // we will only show fixedChartHeight at a time, but we do need to tell scale the total px needed
+  const yScale = React.useMemo(
+    () =>
+      scaleBand<string>()
+        .domain(categoryLabels)
+        .range([0, chartHeight])
+        .padding(barGap),
+    [categoryLabels, chartHeight, barGap],
+  );
   const barHeight = yScale.bandwidth();
+  const eachBandHeight = chartHeight / LabelCount;
 
-  // ── Interaction state ─────────────────────────────────────────────────────
+  // ── Scroll — a shared value, driven directly by Pan on the canvas. No ScrollView. ───────
+  const scrollY = useSharedValue(0);
+  // Mirrored into JS state ONLY for the slice math below (cheap, not
+  // animation-driving) — updated via a throttled callback, not every frame.
+  // WARNING : without throttle the JS fps would crash due to the sheer number of updates JS will have to do per second
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const lastSyncTime = useSharedValue(0);
+  const syncScrollToJS = (val: number) => setScrollOffset(val);
 
+  // for selecting individual bars
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // ── Scroll sync — UI thread, zero lag ─────────────────────────────────────
-  // Mirrors the vertical chart's pattern exactly, just vertical instead of horizontal.
-  // barScrollRef  → the canvas ScrollView the user actually scrolls
-  // labelScrollRef → the category label ScrollView that follows passively
-  const barScrollRef = useAnimatedRef<Animated.ScrollView>();
-  const labelScrollRef = useAnimatedRef<Animated.ScrollView>();
-
-  const scrollY = useSharedValue<number>(0);
-
-  // Worklet runs on UI thread — captures scroll offset and immediately drives
-  // the label ScrollView to the same Y position with no JS bridge round-trip.
-  const onBarScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      "worklet";
-      scrollY.value = event.contentOffset.y;
-      scrollTo(labelScrollRef, 0, scrollY.value, false);
-    },
-  });
-
-  // ── Tap animation ─────────────────────────────────────────────────────────
-
-  // scaleX instead of scaleY — bars are horizontal so they compress leftward
+  // shared value to animate the bars when clicked
   const skiaScaleX = useSharedValue<number>(1);
-
   const skiaTransform: DerivedValue<{ scaleX: number }[]> = useDerivedValue(
     () => [{ scaleX: skiaScaleX.value }],
   );
 
-  const tapGesture = Gesture.Tap()
-    .runOnJS(true)
-    .onStart((g) => {
-      const touchY = g.y;
-      // Inverse band lookup — which row does touchY fall in?
-      const eachBandHeight = chartHeight / LabelCount;
-      const clickedIndex = Math.floor(touchY / eachBandHeight);
+  // ---------------------------GESTURES-------------------------------------
+  // Tap gesture handles tapping on skia generated bars
+  // runs the animation and changes colour (animation only if it was not "none")
+  const handleTap = (touchY: number, currentScroll: number) => {
+    // absoulte touch = current pos. touched on screen + how many pixels have we scrolled
+    const touchYAbs = touchY + currentScroll;
+    const clickedIndex = Math.floor(touchYAbs / eachBandHeight);
 
-      if (clickedIndex >= 0 && clickedIndex < LabelCount) {
-        setActiveIndex(activeIndex === clickedIndex ? null : clickedIndex);
+    if (clickedIndex >= 0 && clickedIndex < LabelCount) {
+      setActiveIndex((prev) => (prev === clickedIndex ? null : clickedIndex));
+      if (animationType === "none") return;
 
-        if (animationType === "none") return;
-
-        skiaScaleX.value = 0.85; // snap compress leftward
-
-        if (animationType === "spring") {
-          const cfg = {
-            ...DEFAULT_SPRING_CONFIG,
-            ...(animationConfig as SpringAnimationConfig),
-          };
-          skiaScaleX.value = withSpring(1, cfg);
-        } else {
-          const cfg = {
-            ...DEFAULT_LINEAR_CONFIG,
-            ...(animationConfig as LinearAnimationConfig),
-          };
-          skiaScaleX.value = withTiming(1, {
-            duration: cfg.duration,
-            easing: Easing.out(Easing.quad),
-          });
-        }
+      skiaScaleX.value = 0.85;
+      if (animationType === "spring") {
+        const cfg = {
+          ...DEFAULT_SPRING_CONFIG,
+          ...(animationConfig as SpringAnimationConfig),
+        };
+        skiaScaleX.value = withSpring(1, cfg);
+      } else {
+        const cfg = {
+          ...DEFAULT_LINEAR_CONFIG,
+          ...(animationConfig as LinearAnimationConfig),
+        };
+        skiaScaleX.value = withTiming(1, {
+          duration: cfg.duration,
+          // TODO : add easing config props so user can change this too just like spring
+          easing: Easing.out(Easing.quad),
+        });
       }
-    });
+    }
+  };
 
-  // ── Canvas ────────────────────────────────────────────────────────────────
+  // handle the tap on UI thread, but let JS handle the maths upon tap and animation part
+  // this is because it involves react state changes too which can only be handled on JS thread
+  const tapGesture = Gesture.Tap().onStart((g) => {
+    "worklet";
+    scheduleOnRN(handleTap, g.y, scrollY.value);
+  });
 
-  const renderCanvas = (): React.ReactElement => (
-    <GestureDetector gesture={tapGesture}>
-      <View
-        style={{ width: chartWidth, height: chartHeight, position: "relative" }}
-      >
-        <Canvas style={StyleSheet.absoluteFill}>
-          {/* Vertical grid lines at each numeric tick */}
-          {xTicks.map((tick, i) => (
-            <Rect
-              key={`grid-${i}`}
-              x={xScale(tick)}
-              y={0}
-              width={1}
-              height={chartHeight}
-              color="#666"
-              opacity={0.15}
-            />
-          ))}
-
-          {/* Bars */}
-          {categoryLabels.map((label, index) => {
-            const value = values[index] ?? 0;
-            const fullBarWidth = xScale(value);
-            const barTop = yScale(label) ?? 0;
-            const verticalOffset = (chartHeight / LabelCount - barHeight) / 2;
-            const finalizedYPosition = barTop + verticalOffset;
-            const isActive = activeIndex === index;
-
-            const roundedBarGeometry = {
-              rect: {
-                x: 0,
-                y: finalizedYPosition,
-                width: fullBarWidth,
-                height: barHeight,
-              },
-              // Right corners rounded, left corners flat so they anchor to the axis
-              topLeft: { x: 0, y: 0 },
-              bottomLeft: { x: 0, y: 0 },
-              topRight: { x: bend, y: bend },
-              bottomRight: { x: bend, y: bend },
-            };
-
-            return (
-              <Group
-                key={`bar-${index}`}
-                // Origin at left edge centre — scaleX grows rightward from the axis wall
-                origin={{ x: 0, y: finalizedYPosition + barHeight / 2 }}
-                transform={isActive ? skiaTransform : undefined}
-              >
-                <RoundedRect
-                  rect={roundedBarGeometry}
-                  color={isActive ? activeColor : color}
-                />
-              </Group>
-            );
-          })}
-        </Canvas>
-
-        {/* Value bubble — floats just right of the active bar tip */}
-        {activeIndex !== null &&
-          (() => {
-            const activeItem = data[activeIndex];
-            if (!activeItem) return null;
-            const barTop = yScale(activeItem.x) ?? 0;
-            const verticalOffset = (chartHeight / LabelCount - barHeight) / 2;
-            const finalizedYPosition = barTop + verticalOffset;
-            const tipX = xScale(activeItem.y);
-
-            return (
-              <View
-                pointerEvents="none"
-                style={[
-                  styles.valueBadge,
-                  {
-                    left: tipX + 6,
-                    top: finalizedYPosition + barHeight / 2 - 11,
-                  },
-                ]}
-              >
-                <Text style={styles.valueBadgeText}>{activeItem.y}</Text>
-              </View>
-            );
-          })()}
-      </View>
-    </GestureDetector>
+  // Handle pan gesture for scroll
+  // we throttle the "scrolling feel" which means it won't shoot off as soon as user moves their finger
+  // we only make an update to scrolled value once in a 100ms (so at max 10 updates per second)
+  // JS FPS performs worse at too much of a lower value
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current) => {
+      const now = Date.now();
+      if (now - lastSyncTime.value > 100) {
+        lastSyncTime.value = now;
+        // TODO : htnk why dont we handle this all on the ui thread itself?
+        scheduleOnRN(syncScrollToJS, current);
+      }
+    },
   );
+  const startScrollY = useSharedValue(0);
 
-  // ── Category label renderer ───────────────────────────────────────────────
-
-  const renderCategoryLabels = (): React.ReactElement[] =>
-    categoryLabels.map((label, index) => {
-      const bh = yScale.bandwidth();
-      const isActive = activeIndex === index;
-      return (
-        <View
-          key={label}
-          style={{
-            height: bh,
-            justifyContent: "center",
-            alignItems: "flex-end",
-            paddingRight: 8,
-            marginVertical: (chartHeight / LabelCount - bh) / 2,
-          }}
-        >
-          <Text
-            style={[
-              styles.yAxisText,
-              { color: labelFontColor },
-              isActive
-                ? [styles.activeYAxisText, { color: labelActiveFontColor }]
-                : undefined,
-            ]}
-          >
-            {label}
-          </Text>
-        </View>
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      "worklet";
+      startScrollY.value = scrollY.value;
+    })
+    .onUpdate((e) => {
+      "worklet";
+      // going downwards is -ve value of traslationY, so as we go down, scrollY will increase
+      // we clamp the scrollY to maxScroll value
+      const next = startScrollY.value - e.translationY;
+      scrollY.value = Math.max(0, Math.min(maxScroll, next));
+    })
+    .onEnd((e) => {
+      // don't stop abruptly as user stops scrolling
+      // rather give a slowing down swipe feel
+      "worklet";
+      scrollY.value = withDecay(
+        {
+          velocity: -e.velocityY, // same sign flip as translationY above
+          clamp: [0, maxScroll],
+        },
+        () => {
+          // decay settled — do one final JS sync so the rendered slice matches exactly
+          scheduleOnRN(syncScrollToJS, scrollY.value);
+        },
       );
     });
 
-  // ── Layout ────────────────────────────────────────────────────────────────
+  // only one of pan or tap can work at a time
+  // pan getsure has higher priority (written first in order)
+  const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
+
+  const labelWidths = React.useMemo(
+    // TODO : replace getTextWidth() deprecated now
+    () => categoryLabels.map((label) => (font ? font.getTextWidth(label) : 0)),
+    [categoryLabels, font],
+  );
+
+  const renderCanvas = (): React.ReactElement => {
+    // Figure out which bars actually need to be drawn right now — only the
+    // ones inside the visible scroll window, plus a small buffer (±2 bars
+    // worth) so bars don't visibly pop in right at the screen edge when we scroll
+    // firstVisibleIndex is the first bar of the current window (including a buffer of 2)
+    const firstVisibleIndex = Math.max(
+      0,
+      Math.floor(scrollOffset / eachBandHeight) - 2,
+    );
+    // how many bars fit on screen, plus the same buffer on the far edge
+    const visibleCount = Math.ceil(fixedChartHeight / eachBandHeight) + 4;
+    // last bar of the cuurent window (including a buffer)
+    const lastVisibleIndex = Math.min(
+      LabelCount,
+      firstVisibleIndex + visibleCount,
+    );
+
+    return (
+      // single gesture system handles BOTH tap-to-select and drag-to-scroll —
+      // Gesture.Exclusive ensures only one can be active per touch, so they
+      // never fight over the same touch the way a separate ScrollView would
+      <GestureDetector gesture={composedGesture}>
+        <View style={{ width, height: fixedChartHeight, position: "relative" }}>
+          {/* canvas is ALWAYS fixedChartHeight tall — never grows with data
+            length. A canvas sized to fit ALL bars (chartHeight) can exceed
+            the device's GPU surface size limit at large data counts and
+            crash with no error — this is why we virtualise instead. */}
+          <Canvas style={StyleSheet.absoluteFill}>
+            {/* vertical grid lines at each numeric tick — fixed position,
+              never scroll, drawn once per render regardless of scrollOffset */}
+            {xTicks.map((tick, i) => (
+              <Rect
+                key={`grid-${i}`}
+                x={xScale(tick) + yAxisWidth}
+                y={0}
+                width={1}
+                height={fixedChartHeight}
+                color="#666"
+                opacity={0.15}
+              />
+            ))}
+
+            {/* only slice + map over the visible window, not the full dataset —
+              this is the actual virtualisation: at 1000+ bars we still only
+              ever create ~15-20 Skia nodes per render, not 1000 */}
+            {categoryLabels
+              .slice(firstVisibleIndex, lastVisibleIndex)
+              .map((label, i) => {
+                const index = firstVisibleIndex + i; // real index into full data
+                const value = values[index] ?? 0;
+                const fullBarWidth = xScale(value);
+
+                // bar's true position in the FULL (unwindowed) data space,
+                // then shift up by scrollOffset to land in the visible viewport
+                const barTop = (yScale(label) ?? 0) - scrollOffset;
+                const verticalOffset = (eachBandHeight - barHeight) / 2;
+                const finalizedYPosition = barTop + verticalOffset;
+                const isActive = activeIndex === index;
+
+                const roundedBarGeometry = {
+                  rect: {
+                    x: yAxisWidth, // bars start right after the label column
+                    y: finalizedYPosition,
+                    width: fullBarWidth,
+                    height: barHeight,
+                  },
+                  // right corners rounded, left corners flat so bars visually
+                  // anchor flush against the y-axis line
+                  topLeft: { x: 0, y: 0 },
+                  bottomLeft: { x: 0, y: 0 },
+                  topRight: { x: bend, y: bend },
+                  bottomRight: { x: bend, y: bend },
+                };
+
+                return (
+                  <Group key={`bar-${index}`}>
+                    {/* inner Group exists ONLY so skiaTransform (the tap
+                      "squish" animation) applies to the bar alone, not the
+                      label text drawn alongside it */}
+                    <Group
+                      origin={{
+                        x: yAxisWidth,
+                        y: finalizedYPosition + barHeight / 2,
+                      }}
+                      transform={isActive ? skiaTransform : undefined}
+                    >
+                      <RoundedRect
+                        rect={roundedBarGeometry}
+                        color={isActive ? activeColor : color}
+                      />
+                    </Group>
+
+                    {/* category label, drawn in Skia (not RN <Text>) so it
+                      lives in the same canvas/coordinate space as the bar —
+                      no separate scroll view or sync mechanism needed */}
+                    {font && (
+                      <SkiaText
+                        x={yAxisWidth - labelWidths[index] - 8} // right-align
+                        y={finalizedYPosition + barHeight / 2 + FONT_SIZE / 3}
+                        text={label}
+                        font={font}
+                        color={isActive ? labelActiveFontColor : labelFontColor}
+                      />
+                    )}
+                  </Group>
+                );
+              })}
+          </Canvas>
+        </View>
+      </GestureDetector>
+    );
+  };
 
   return (
     <View style={{ width, height, marginTop: 50, marginLeft: 20 }}>
-      {/* Sticky numeric (x) axis labels at top — these never scroll */}
       <View
         style={{
           flexDirection: "row",
@@ -306,58 +380,17 @@ const HorizontalBarChart = ({
         ))}
       </View>
 
-      {/* Main row: category labels + chart area */}
-      <View
-        style={{
-          flexDirection: "row",
-          height: fixedChartHeight,
-          overflow: "hidden",
-        }}
-      >
-        {/* Category labels — sticky, driven by labelScrollRef on UI thread */}
-        <Animated.ScrollView
-          ref={labelScrollRef}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-          style={{ width: yAxisWidth, height: fixedChartHeight }}
-          contentContainerStyle={{ height: chartHeight }}
-        >
-          {renderCategoryLabels()}
-        </Animated.ScrollView>
-
-        {/* Chart area */}
-        {scrollable ? (
-          <Animated.ScrollView
-            ref={barScrollRef}
-            showsVerticalScrollIndicator={false}
-            style={{ width: chartWidth, height: fixedChartHeight }}
-            onScroll={onBarScroll}
-            scrollEventThrottle={16}
-          >
-            {renderCanvas()}
-          </Animated.ScrollView>
-        ) : (
-          renderCanvas()
-        )}
+      <View style={{ height: fixedChartHeight, overflow: "hidden" }}>
+        {renderCanvas()}
       </View>
     </View>
   );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  xAxisText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  yAxisText: {
-    fontSize: 12,
-    textAlign: "right",
-  },
-  activeYAxisText: {
-    fontWeight: "bold",
-  },
+  xAxisText: { fontSize: 12, fontWeight: "600" },
+  yAxisText: { fontSize: 12, textAlign: "right" },
+  activeYAxisText: { fontWeight: "bold" },
   valueBadge: {
     position: "absolute",
     backgroundColor: "#333",
@@ -367,11 +400,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     elevation: 3,
   },
-  valueBadgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "bold",
-  },
+  valueBadgeText: { color: "#fff", fontSize: 11, fontWeight: "bold" },
 });
 
 export default HorizontalBarChart;
