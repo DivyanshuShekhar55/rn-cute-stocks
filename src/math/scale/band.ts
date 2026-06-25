@@ -54,7 +54,7 @@ export function scaleBand<T extends string | number>(): ScaleBand<T> {
   // store label to start position as KV pairs
   let positions: Map<T, number> = new Map();
 
-  function rescale() {
+  function rescale() : ScaleBand<T> {
     const n = domain.length;
 
     const reverse = range[1] < range[0];

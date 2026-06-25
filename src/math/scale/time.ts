@@ -4,7 +4,7 @@ interface ScaleTime {
   (x: Date | number): number | undefined;
   invert(y: number): Date | undefined;
   domain(): [Date, Date]; // getter
-  domain(d: [Date, Date]): ScaleTime; // setter
+  domain(d: [Date | number, Date | number]): ScaleTime; // setter
   range(): [number, number]; // getter
   range(r: [number, number]): ScaleTime; // setter
   clamp(): boolean; // getter
@@ -40,7 +40,7 @@ export function scaleTime(): ScaleTime {
     return isNaN(ms) ? undefined : ms;
   }
 
-  function rescale() {
+  function rescale() : ScaleTime {
     output = null;
     input = null;
     return scale;
@@ -86,7 +86,7 @@ export function scaleTime(): ScaleTime {
     return new Date(ms);
   } as ScaleTime["invert"];
 
-  scale.domain = function (d?: [Date, Date]) {
+  scale.domain = function (d?: [Date | number, Date | number]) {
     // if no domain given, then function acts as a getter
     // runtime check the domain dates and send it back
     if (d === undefined) return [new Date(domain[0]), new Date(domain[1])];
