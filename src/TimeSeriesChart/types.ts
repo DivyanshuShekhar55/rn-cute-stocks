@@ -1,6 +1,6 @@
 import type { StyleProp, ViewStyle, TextStyle } from "react-native";
 import { CursorProps, CurveType, SearchAlgorithm } from "../shared/types";
-import { scaleLinear, scaleTime } from "d3-scale";
+import { scaleLinear, scaleTime } from "../math/scale/index"
 
 // Types
 
@@ -13,7 +13,7 @@ export interface TimeSeriesDataPoint {
 export interface TimeSeriesPathResult {
   strPath: string | null;
   xFunc: ReturnType<typeof scaleTime>;
-  yFunc: ReturnType<typeof scaleLinear<number, number>>;
+  yFunc: ReturnType<typeof scaleLinear>;
   data: TimeSeriesDataPoint[];
   xRangeMin: number;
   xRangeMax: number;

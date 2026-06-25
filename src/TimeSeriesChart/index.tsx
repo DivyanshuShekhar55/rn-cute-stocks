@@ -54,8 +54,8 @@ const TimeSeriesChart = ({
     [strPath],
   );
 
-  const initX = xFunc(data[0].x) as number;
-  const initY = yFunc(data[0].y);
+  const initX = xFunc(data[0].x) ?? (0 as number);
+  const initY = yFunc(data[0].y) ?? 0;
 
   // x and y position for cursor
   const xPos = useSharedValue<number>(initX);
@@ -74,6 +74,8 @@ const TimeSeriesChart = ({
 
   const updateY = (clampedX: number): void => {
     const result = GetYForX_TimeSeries(clampedX, width, data, height, ySearch);
+    // if returned position was undefined (due to bad data passed in) cursor won't update
+    if (!result) return;
     yPos.value = result.yCoord;
 
     // TODO :

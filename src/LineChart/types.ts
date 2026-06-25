@@ -1,6 +1,6 @@
 import { StyleProp, TextStyle, ViewStyle } from "react-native";
 import { CursorProps, CurveType } from "../shared/types";
-import { scaleLinear, scalePoint } from "d3-scale";
+import { scaleLinear, scalePoint } from "../math/scale";
 
 // Types
 
@@ -14,7 +14,7 @@ export interface LineDataPoint {
 export interface LineChartPathResult {
   strPath: string | null;
   xFunc: ReturnType<typeof scalePoint<string>>;
-  yFunc: ReturnType<typeof scaleLinear<number, number>>;
+  yFunc: ReturnType<typeof scaleLinear>;
   data: LineDataPoint[];
   xRangeMin: number;
   xRangeMax: number;

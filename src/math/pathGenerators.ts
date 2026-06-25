@@ -7,12 +7,19 @@ import {
   line,
 } from "d3-shape";
 
-import { max, min } from "d3-array";
-import { scaleLinear, scalePoint, scaleTime } from "d3-scale";
+import { max, min } from "./array/minMax";
+import { scaleLinear, scalePoint, scaleTime } from "./scale/index";
 import { CurveType, SearchAlgorithm, YForXResult } from "../shared/types";
-import { TimerSeriesPathConfig, TimeSeriesDataPoint } from "../TimeSeriesChart/types";
+import {
+  TimerSeriesPathConfig,
+  TimeSeriesDataPoint,
+} from "../TimeSeriesChart/types";
 import { Candle } from "../CandleStickChart/types";
-import { LineChartPathConfig, LineChartPathResult, LineDataPoint } from "../LineChart/types";
+import {
+  LineChartPathConfig,
+  LineChartPathResult,
+  LineDataPoint,
+} from "../LineChart/types";
 
 function getCurve(curveType: CurveType) {
   let curve;
@@ -50,7 +57,7 @@ function getCurve(curveType: CurveType) {
 function buildYScale(
   data: { y: number }[],
   canvasHeight: number,
-): ReturnType<typeof scaleLinear<number, number>> {
+): ReturnType<typeof scaleLinear> {
   const minY =
     min(data, (d) => {
       return d.y;
@@ -102,9 +109,16 @@ function GenerateStringPath_TimeSeries(
 
   const yFunc = buildYScale(data, canvasHeight);
 
+  // our scale function (in math/scale/time) returns number or undefined
+  // undefined is returned for NaNs, or undefined or null datums
+  // but the "line" function from d3 accepts only numbers
+  // if we pass it undefined too it will mess up the graph
+  // so we use the defined() function to neglect all the undefined data points
+  // they will leave a blank spot on the graph rather tham crashing
   const strPath = line<TimeSeriesDataPoint>()
+    .defined((d) => xFunc(d.x) !== undefined && yFunc(d.y) !== undefined)
     .x((d) => xFunc(d.x) as number)
-    .y((d) => yFunc(d.y))
+    .y((d) => yFunc(d.y) as number)
     .curve(curve)(data);
 
   return {
@@ -126,7 +140,7 @@ function GetYForX_TimeSeries(
   data: TimeSeriesDataPoint[],
   canvasHeight: number,
   ySearchAlgorithm: SearchAlgorithm,
-): YForXResult {
+): YForXResult | undefined {
   // IDEA BEHIND THIS FUNC. :
   // the curve is not linear so find two nearby points for the given X (timestamp)
   // then assume them as a linear line and get Y via linear interpolation
@@ -172,8 +186,8 @@ const searchStrategy_TimeSeries = (
   clampedXPos: number,
   xFunc: ReturnType<typeof scaleTime>,
   data: TimeSeriesDataPoint[],
-  yFunc: ReturnType<typeof scaleLinear<number, number>>,
-): YForXResult => {
+  yFunc: ReturnType<typeof scaleLinear>,
+): YForXResult | undefined => {
   switch (searchStrategy) {
     case "binarySearchWithInterpolation":
       return binarySearch_TimeSeries(clampedXPos, xFunc, data, yFunc);
@@ -196,19 +210,23 @@ const binarySearch_TimeSeries = (
   clampedXPos: number,
   xFunc: ReturnType<typeof scaleTime>,
   data: TimeSeriesDataPoint[],
-  yFunc: ReturnType<typeof scaleLinear<number, number>>,
-): YForXResult => {
-  let timestamp = xFunc.invert(clampedXPos).getTime();
+  yFunc: ReturnType<typeof scaleLinear>,
+): YForXResult | undefined => {
+  let inverted = xFunc.invert(clampedXPos);
+  if (inverted === undefined) return undefined;
+  let timestamp = inverted.getTime();
 
   let leftIdx = 0;
 
   if (timestamp <= data[0].x) {
     const p = data[0].y;
-    return { yCoord: yFunc(p), actualVal: p };
+    const yCoord = yFunc(p);
+    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
   }
   if (timestamp >= data[data.length - 1].x) {
     const p = data[data.length - 1].y;
-    return { yCoord: yFunc(p), actualVal: p };
+    const yCoord = yFunc(p);
+    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
   }
 
   // Binary search for the two timestamps that straddle our target
@@ -234,12 +252,11 @@ const binarySearch_TimeSeries = (
 
   // do Linear interpolation here
   const denominator = rightPoint.x - leftPoint.x;
-  const ratio =
-    denominator !== 0 ? (timestamp - leftPoint.x) / denominator : 0;
+  const ratio = denominator !== 0 ? (timestamp - leftPoint.x) / denominator : 0;
   const yVal = leftPoint.y + ratio * (rightPoint.y - leftPoint.y);
 
   let actualVal = yVal;
-  let yCoord = yFunc(yVal);
+  let yCoord = yFunc(yVal)!;
   return { yCoord, actualVal };
 };
 
@@ -266,9 +283,16 @@ function GenerateStringPath(
 
   const yFunc = buildYScale(data, canvasHeight);
 
+  // our scale function (in math/scale/point) returns number or undefined
+  // undefined is returned for NaNs, or undefined or null datums
+  // but the "line" function from d3 accepts only numbers
+  // if we pass it undefined too it will mess up the graph
+  // so we use the defined() function to neglect all the undefined data points
+  // they will leave a blank spot on the graph rather tham crashing
   const strPath = line<LineDataPoint>()
-    .x((d) => xFunc(d.x) ?? 0)
-    .y((d) => yFunc(d.y))
+    .defined((d) => xFunc(d.x) !== undefined && yFunc(d.y) !== undefined)
+    .x((d) => xFunc(d.x) as number)
+    .y((d) => yFunc(d.y) as number)
     .curve(curve)(data);
 
   // scalePoint spaces points evenly (linear) so step is constant — precompute for O(1) lookup
@@ -297,7 +321,7 @@ function GetYForX(
   canvasWidth: number,
   data: LineDataPoint[],
   canvasHeight: number,
-): YForXResult {
+): YForXResult | undefined {
   if (
     !LINECHART_PATH_CONFIG ||
     LINECHART_PATH_CONFIG.canvasWidth !== canvasWidth ||
@@ -311,8 +335,7 @@ function GetYForX(
     };
   }
 
-  const { xFunc, yFunc, xRangeMin, xRangeMax, step } =
-    LINECHART_PATH_CONFIG;
+  const { xFunc, yFunc, xRangeMin, xRangeMax, step } = LINECHART_PATH_CONFIG;
   const clamped = Math.max(xRangeMin, Math.min(xRangeMax, xPos));
 
   return linechartLookup(clamped, data, yFunc, xRangeMin, step);
@@ -321,13 +344,14 @@ function GetYForX(
 function linechartLookup(
   clampedXPos: number,
   data: LineDataPoint[],
-  yFunc: ReturnType<typeof scaleLinear<number, number>>,
+  yFunc: ReturnType<typeof scaleLinear>,
   xRangeMin: number,
   step: number,
-): YForXResult {
+): YForXResult | undefined {
   if (step === 0) {
     const p = data[0]?.y ?? 0;
-    return { yCoord: yFunc(p), actualVal: p };
+    const yCoord = yFunc(p);
+    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
   }
 
   // scalePoint is evenly spaced so index = round((x - range_min) / step) — O(1), no loop
@@ -349,7 +373,8 @@ function linechartLookup(
   const ratio = rawIndex - leftIndex; // fractional part — how far between left and right
   const yVal = leftPoint.y + ratio * (rightPoint.y - leftPoint.y);
 
-  return { yCoord: yFunc(yVal), actualVal: yVal };
+  const yCoord = yFunc(yVal);
+  return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: yVal };
 }
 
 export {

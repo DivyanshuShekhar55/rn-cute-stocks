@@ -44,7 +44,7 @@ const LineChart = ({
   // scalePoint returns number | undefined — the ?? 0 is a safety fallback
   // in practice the first label is always in domain so this won't be 0
   const initX = xFunc(data[0].x) ?? 0;
-  const initY = yFunc(data[0].y);
+  const initY = yFunc(data[0].y) ?? 0;
 
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
@@ -55,6 +55,9 @@ const LineChart = ({
 
   const updateY = (clampedX: number): void => {
     const result = GetYForX(clampedX, width, data, height);
+
+    // if returned position was undefined (due to bad data passed in) cursor won't update
+    if (!result) return
     yPos.value = result.yCoord;
 
     const now = Date.now();
