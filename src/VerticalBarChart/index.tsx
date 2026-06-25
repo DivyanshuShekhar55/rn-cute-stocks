@@ -17,8 +17,8 @@ import {
 } from "react-native-reanimated";
 import type { DerivedValue } from "react-native-reanimated";
 import React, { useState } from "react";
-import { scaleBand, scaleLinear } from "d3-scale";
-import { max } from "d3-array";
+import { scaleBand, scaleLinear } from "../math/scale";
+import { max } from "../math/array/minMax";
 import {
   Canvas,
   Group,
@@ -91,10 +91,7 @@ const VerticalBarChart = ({
 
   // y-axis stays fixed regardless of scroll — only x scrolls in this chart
   const yScale = React.useMemo(
-    () =>
-      scaleLinear<number, number>()
-        .domain([0, maxValue])
-        .range([barAreaHeight, 0]),
+    () => scaleLinear().domain([0, maxValue]).range([barAreaHeight, 0]),
     [maxValue, barAreaHeight],
   );
 
@@ -124,7 +121,7 @@ const VerticalBarChart = ({
       scaleBand<string>()
         .domain(xAxisLabels)
         .range([0, chartWidth])
-        .padding(barGap),
+        .paddingInner(barGap),
     [xAxisLabels, chartWidth, barGap],
   );
   const barWidth = xScale.bandwidth();
@@ -289,7 +286,11 @@ const VerticalBarChart = ({
               .map((label, i) => {
                 const index = firstVisibleIndex + i; // real index into full data
                 const value = yAxisLabels[index] ?? 0;
-                const barHeight = barAreaHeight - yScale(value);
+
+                // make bar height=0 for bad data points
+                const yScaleVal = yScale(value);
+                const barHeight =
+                  yScaleVal === undefined ? 0 : barAreaHeight - yScaleVal;
 
                 // bar's true position in the FULL (unwindowed) data space,
                 // then shift left by scrollOffset to land in the viewport
@@ -370,22 +371,28 @@ const VerticalBarChart = ({
             position: "relative",
           }}
         >
-          {yTicks.map((label, i) => (
-            <Text
-              key={i}
-              style={[
-                styles.yAxisText,
-                {
-                  position: "absolute",
-                  top: yScale(label) - textOffset,
-                  right: 8,
-                  color: labelFontColor,
-                },
-              ]}
-            >
-              {label}
-            </Text>
-          ))}
+          {yTicks.map((label, i) => {
+            const yScaleVal = yScale(label);
+
+            // return no text for bad data points
+            if (yScaleVal === undefined) return null;
+            return (
+              <Text
+                key={i}
+                style={[
+                  styles.yAxisText,
+                  {
+                    position: "absolute",
+                    top: yScaleVal - textOffset,
+                    right: 8,
+                    color: labelFontColor,
+                  },
+                ]}
+              >
+                {label}
+              </Text>
+            );
+          })}
         </View>
 
         <View

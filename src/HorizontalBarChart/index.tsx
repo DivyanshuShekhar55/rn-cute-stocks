@@ -10,8 +10,8 @@ import {
   useAnimatedReaction,
 } from "react-native-reanimated";
 import React, { useState } from "react";
-import { scaleBand, scaleLinear } from "d3-scale";
-import { max } from "d3-array";
+import { scaleBand, scaleLinear } from "../math/scale";
+import { max } from "../math/array/minMax";
 import {
   Canvas,
   Group,
@@ -21,10 +21,7 @@ import {
   Text as SkiaText,
 } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import {
-  LinearAnimationConfig,
-  SpringAnimationConfig,
-} from "../shared/types";
+import { LinearAnimationConfig, SpringAnimationConfig } from "../shared/types";
 import { HorizontalBarChartProps } from "./types";
 import {
   DEFAULT_LINEAR_CONFIG,
@@ -76,10 +73,7 @@ const HorizontalBarChart = ({
   // xScale: linear — maps 0→maxValue to 0→chartWidth (bars grow rightward)
   // memoize this so we don't need to rebuild it everytime component re-renders
   const xScale = React.useMemo(
-    () =>
-      scaleLinear<number, number>()
-        .domain([0, maxValue])
-        .range([0, chartWidth]),
+    () => scaleLinear().domain([0, maxValue]).range([0, chartWidth]),
     [maxValue, chartWidth],
   );
 
@@ -122,7 +116,7 @@ const HorizontalBarChart = ({
       scaleBand<string>()
         .domain(categoryLabels)
         .range([0, chartHeight])
-        .padding(barGap),
+        .paddingInner(barGap),
     [categoryLabels, chartHeight, barGap],
   );
   const barHeight = yScale.bandwidth();
@@ -271,17 +265,21 @@ const HorizontalBarChart = ({
           <Canvas style={StyleSheet.absoluteFill}>
             {/* vertical grid lines at each numeric tick — fixed position,
               never scroll, drawn once per render regardless of scrollOffset */}
-            {xTicks.map((tick, i) => (
-              <Rect
-                key={`grid-${i}`}
-                x={xScale(tick) + yAxisWidth}
-                y={0}
-                width={1}
-                height={fixedChartHeight}
-                color="#666"
-                opacity={0.15}
-              />
-            ))}
+            {xTicks.map((tick, i) => {
+              const x = xScale(tick);
+              if (x === undefined) return null; // don't render bad data
+              return (
+                <Rect
+                  key={`grid-${i}`}
+                  x={x + yAxisWidth}
+                  y={0}
+                  width={1}
+                  height={fixedChartHeight}
+                  color="#666"
+                  opacity={0.15}
+                />
+              );
+            })}
 
             {/* only slice + map over the visible window, not the full dataset —
               this is the actual virtualisation: at 1000+ bars we still only
@@ -291,7 +289,7 @@ const HorizontalBarChart = ({
               .map((label, i) => {
                 const index = firstVisibleIndex + i; // real index into full data
                 const value = values[index] ?? 0;
-                const fullBarWidth = xScale(value);
+                const fullBarWidth = xScale(value) ?? 0;
 
                 // bar's true position in the FULL (unwindowed) data space,
                 // then shift up by scrollOffset to land in the visible viewport
@@ -363,21 +361,26 @@ const HorizontalBarChart = ({
           marginLeft: yAxisWidth,
         }}
       >
-        {xTicks.map((tick, i) => (
-          <Text
-            key={i}
-            style={[
-              styles.xAxisText,
-              {
-                position: "absolute",
-                left: xScale(tick) - textOffset,
-                color: labelFontColor,
-              },
-            ]}
-          >
-            {tick}
-          </Text>
-        ))}
+        {xTicks.map((tick, i) => {
+          const xScaleVal = xScale(tick);
+          // no rendering text for bad data
+          if (xScaleVal === undefined) return null;
+          return (
+            <Text
+              key={i}
+              style={[
+                styles.xAxisText,
+                {
+                  position: "absolute",
+                  left: xScaleVal - textOffset,
+                  color: labelFontColor,
+                },
+              ]}
+            >
+              {tick}
+            </Text>
+          );
+        })}
       </View>
 
       <View style={{ height: fixedChartHeight, overflow: "hidden" }}>

@@ -7,7 +7,7 @@ import {
   Text,
   vec,
 } from "@shopify/react-native-skia";
-import { scaleLinear } from "d3-scale";
+import { scaleLinear } from "../math/scale"
 import React, { useState, useMemo } from "react";
 import { Platform, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -77,7 +77,8 @@ const CandleStick = ({
   const x = index * candleWidth;
   // yHigh is the top of the candle body (higher price = lower Y in canvas coords)
   const yHigh = scaleY(Math.max(open, close));
-  const candleHeight = scaleBody(Math.abs(open - close));
+  // if bad data and candle height is returned undefined, use height=0
+  const candleHeight = scaleBody(Math.abs(open - close)) ?? 0
   return (
     <>
       {/* Wick: thin vertical line from high to low */}

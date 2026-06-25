@@ -29,9 +29,9 @@ export interface CandleChartProps {
 
 export interface CandleStickProps {
   // d3 scale: maps a price to a canvas Y coordinate
-  scaleY: (value: number) => number;
+  scaleY: (value: number) => number|undefined;
   // d3 scale: maps a price delta to a canvas pixel height
-  scaleBody: (value: number) => number;
+  scaleBody: (value: number) => number|undefined;
   index: number;
   candleWidth: number;
   // fill is [highCandleCol, lowCandleCol]
