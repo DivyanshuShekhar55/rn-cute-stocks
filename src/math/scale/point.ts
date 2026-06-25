@@ -1,5 +1,20 @@
 import { scaleBand } from "./band";
 
+interface ScalePoint<T extends string | number> {
+  (category: T): number | undefined;
+  step(): number;
+  domain(): [number, number];
+  domain(d: T[]): ScalePoint<T>;
+  range(): [number, number];
+  range(d: [number, number]): ScalePoint<T>;
+  round(): boolean;
+  round(r: boolean): ScalePoint<T>;
+  padding(): number;
+  padding(p: number): ScalePoint<T>;
+  align(): number;
+  align(a: number): ScalePoint<T>;
+}
+
 /**
  * Spreads labels evenly along the axis as single points instead of bars.
  *
@@ -10,7 +25,7 @@ import { scaleBand } from "./band";
  * Use this for line/scatter chart x-axes where you want each category
  * centered at a point, not occupying a rect.
  */
-export function scalePoint<T extends string | number>() {
+export function scalePoint<T extends string | number>(): ScalePoint<T> {
   const band = scaleBand<T>();
   // lock paddingInner permanently — point scales never expose this,
   // it's an implementation detail of "what makes a band a point"
@@ -20,17 +35,17 @@ export function scalePoint<T extends string | number>() {
    * @param category a value from the domain
    * @returns the point's pixel position, or undefined if category isn't in domain
    */
-  function scale(category: T): number | undefined {
+  const scale = function (category: T): number | undefined {
     return band(category);
-  }
+  } as ScalePoint<T>;
 
   /**
-   * @returns the spacing between consecutive points
+   * @returns the spacing between two consecutive points
    * (equivalent to band's step, since bandwidth is always 0 here)
    */
   scale.step = function () {
     return band.step();
-  };
+  } as ScalePoint<T>["step"];
 
   /**
    * @param d optional array of categories
@@ -39,7 +54,7 @@ export function scalePoint<T extends string | number>() {
    */
   scale.domain = function (d?: T[]) {
     return d === undefined ? band.domain() : band.domain(d);
-  };
+  } as ScalePoint<T>["domain"];
 
   /**
    * @param r optional [min, max] pixel range
@@ -48,7 +63,7 @@ export function scalePoint<T extends string | number>() {
    */
   scale.range = function (r?: [number, number]) {
     return r === undefined ? band.range() : band.range(r);
-  };
+  } as ScalePoint<T>["range"];
 
   /**
    * @param r optional boolean
@@ -59,7 +74,7 @@ export function scalePoint<T extends string | number>() {
    */
   scale.round = function (r?: boolean) {
     return r === undefined ? band.round() : band.round(r);
-  };
+  } as ScalePoint<T>["round"];
 
   /**
    * @param p optional number, fraction of step reserved before the first
@@ -73,7 +88,7 @@ export function scalePoint<T extends string | number>() {
    */
   scale.padding = function (p?: number) {
     return p === undefined ? band.paddingOuter() : band.paddingOuter(p);
-  };
+  } as ScalePoint<T>["padding"];
 
   /**
    * @param a optional number, clamped to [0, 1]
@@ -85,7 +100,7 @@ export function scalePoint<T extends string | number>() {
    */
   scale.align = function (a?: number) {
     return a === undefined ? band.align() : band.align(a);
-  };
+  } as ScalePoint<T>["align"];
 
   return scale;
 }

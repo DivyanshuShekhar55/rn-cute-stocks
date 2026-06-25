@@ -1,7 +1,26 @@
+// Return type of the Scale Band Function
+interface ScaleBand<T extends string | number> {
+  (category: T): number | undefined;
+  bandwidth(): number;
+  step(): number;
+  domain(): [number, number]; // getter
+  domain(d: T[]): ScaleBand<T>;
+  range(): [number, number];
+  range(r: [number, number]): ScaleBand<T>;
+  round(): boolean;
+  round(r: boolean): ScaleBand<T>;
+  paddingInner(): number;
+  paddingInner(p: number): ScaleBand<T>;
+  paddingOuter(): number;
+  paddingOuter(p: number): ScaleBand<T>;
+  align(): number;
+  align(a: number): ScaleBand<T>;
+}
+
 /**
  * Takes in label as param (type number or string) and spreads them evenly along the axes.
  */
-export function scaleBand<T extends string | number>() {
+export function scaleBand<T extends string | number>(): ScaleBand<T> {
   // as with scaleLinear and scaleTime scaleBand will NOT be [number, number]
   // can have any length of labels
   let domain: T[] = [];
@@ -84,9 +103,9 @@ export function scaleBand<T extends string | number>() {
    * @param category
    * @returns The starting position for the category
    */
-  function scale(category: T): number | undefined {
+  const scale = function (category: T): number | undefined {
     return positions.get(category);
-  }
+  } as ScaleBand<T>;
 
   /**
    * @returns {number} returns the width occupied by the bars
@@ -114,7 +133,7 @@ export function scaleBand<T extends string | number>() {
     domain = d.slice();
     // invalidate the cache and re-run calculations
     return rescale();
-  };
+  } as ScaleBand<T>["domain"];
 
   /**
    *
@@ -126,7 +145,7 @@ export function scaleBand<T extends string | number>() {
     if (r === undefined) return range.slice() as [number, number];
     range = [Number(r[0]), Number(r[1])];
     return rescale();
-  };
+  } as ScaleBand<T>["range"];
 
   /**
    *
@@ -143,7 +162,7 @@ export function scaleBand<T extends string | number>() {
     // example - "true" or 1 would be converted back to true
     round = !!r;
     return rescale();
-  };
+  } as ScaleBand<T>["round"];
 
   /**
    *
@@ -157,7 +176,7 @@ export function scaleBand<T extends string | number>() {
     if (p === undefined) return paddingInner;
     paddingInner = Math.min(1, p);
     return rescale();
-  };
+  } as ScaleBand<T>["paddingInner"];
 
   /**
    * @param p optional number — fraction of `step` to reserve as space
@@ -169,7 +188,7 @@ export function scaleBand<T extends string | number>() {
     if (p === undefined) return paddingOuter;
     paddingOuter = Number(p);
     return rescale();
-  };
+  } as ScaleBand<T>["paddingOuter"];
 
   /**
    * @param a optional number, clamped to `[0, 1]`
@@ -183,7 +202,7 @@ export function scaleBand<T extends string | number>() {
     if (a === undefined) return align;
     align = Math.max(0, Math.min(1, a));
     return rescale();
-  };
+  } as ScaleBand<T>["align"];
 
   return scale;
 }

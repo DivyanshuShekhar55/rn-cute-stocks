@@ -1,9 +1,27 @@
 import { bimap, clamper, identity } from "./continuous";
 
+// TS had issues referencing the type of ScaleLinear and its functions so we need to explicitly tell it
+// Also need to separate out the getter and setter from those functions which allows both (like domain, range and clamp here)
+// TS doesn't know what will be return type if we define both getter and setter as one function (which we do define as one function only)
+// e.g.,  domain(d?: [number, number]): [number, number] | LinearScale, but TS can't guess if its a getter it returns [number, number] and LinearScale for setters. It thinks even a getter can return both types
+// but in implementation it will still be one function, just need to split in the interface
+// rescale is internal function and hence doesn't belong to LinearScale interface / return type
+
+interface LinearScale {
+  (x: number): number | undefined;
+  invert(y: number): number;
+  domain(): [number, number]; // getter
+  domain(d: [number, number]): LinearScale; // setter
+  range(): [number, number]; // getter
+  range(r: [number, number]): LinearScale; // setter
+  clamp(): boolean; // getter
+  clamp(c: boolean): LinearScale; // setter
+}
+
 /**
  * Scale Linear function returns a function which is based on a linear scale.
  */
-export function scaleLinear() {
+export function scaleLinear(): LinearScale {
   // this function is a closure because we want to cache things
 
   // we assume domain and range as [0, 1] by default
@@ -20,7 +38,7 @@ export function scaleLinear() {
   // given a point in range, return the corresponding point from domain
   let input: ((x: number) => number) | null = null;
 
-  function rescale() {
+  function rescale(): LinearScale {
     // if config changed, invalidate the cahched input and output
     output = null;
     input = null;
@@ -30,7 +48,7 @@ export function scaleLinear() {
     return scale;
   }
 
-  function scale(x: number) {
+  const scale = function (x: number): number | undefined {
     if (x == null || isNaN(x)) return undefined;
 
     // create & cache output, if not present
@@ -40,7 +58,7 @@ export function scaleLinear() {
     // this calls the output function
     // clamp x, then return the corresponding value belonging in the range
     return output(clampFunc(x));
-  }
+  } as LinearScale;
 
   // takes a number from range, returns correspodning domain value
   // also clamp the return from input function
@@ -62,7 +80,7 @@ export function scaleLinear() {
 
     // inavalidate cache
     return rescale();
-  };
+  } as LinearScale["domain"];
 
   // getter and setter, same pattern as domain
   scale.range = function (r?: [number, number]) {
@@ -73,7 +91,7 @@ export function scaleLinear() {
     range = [Number(r[0]), Number(r[1])];
 
     return rescale();
-  };
+  } as LinearScale["range"];
 
   // getter and setter for clamping
   // clamp = true means values outside domain get pinned to domain edges
@@ -83,7 +101,7 @@ export function scaleLinear() {
 
     clampFunc = c ? clamper(domain[0], domain[1]) : identity;
     return rescale();
-  };
+  } as LinearScale["clamp"];
 
   // without this, scaleLinear() returns undefined and nothing works
   return scale;

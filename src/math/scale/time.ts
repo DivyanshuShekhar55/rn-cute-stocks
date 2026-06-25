@@ -1,11 +1,22 @@
 import { bimap, clamper, identity } from "./continuous";
 
+interface ScaleTime {
+  (x: Date | number): number | undefined;
+  invert(y: number): Date | undefined;
+  domain(): [Date, Date]; // getter
+  domain(d: [Date, Date]): ScaleTime; // setter
+  range(): [number, number]; // getter
+  range(r: [number, number]): ScaleTime; // setter
+  clamp(): boolean; // getter
+  clamp(c: boolean): ScaleTime; // setter
+}
+
 /**
  * This inputs time as domain and uses a linear scale to spread the data.
  *
  * Converts date strings into ms integer, then proceed same as scaleLinear
  */
-export function scaleTime() {
+export function scaleTime(): ScaleTime {
   // introduce default domain and range
   let domain: [Date, Date] = [new Date(0), new Date()];
   let range: [number, number] = [0, 1];
@@ -35,7 +46,7 @@ export function scaleTime() {
     return scale;
   }
 
-  function scale(date: Date | number): number | undefined {
+  const scale = function (date: Date | number): number | undefined {
     const ms = toMs(date);
     if (ms === undefined) return undefined;
 
@@ -52,7 +63,7 @@ export function scaleTime() {
     // this calls the output function
     // also clamp the time ms within the accepted domain before calling
     return output(clampFunc(ms));
-  }
+  } as ScaleTime;
 
   scale.invert = function (y: number): Date | undefined {
     // check if input function is cached
@@ -73,7 +84,7 @@ export function scaleTime() {
     if (ms == null || isNaN(ms)) return undefined;
 
     return new Date(ms);
-  };
+  } as ScaleTime["invert"];
 
   scale.domain = function (d?: [Date, Date]) {
     // if no domain given, then function acts as a getter
@@ -84,14 +95,14 @@ export function scaleTime() {
     // also rescale, to invalidate cache
     domain = [new Date(d[0]), new Date(d[1])];
     return rescale();
-  };
+  } as ScaleTime["domain"];
 
   scale.range = function (r?: [number, number]) {
     // return a shallow copy of range (safer, no operation can happen on that returned range)
     if (r === undefined) return range.slice();
     range = [Number(r[0]), Number(r[1])];
     return rescale();
-  };
+  } as ScaleTime["range"];
 
   // we don't use toMs() here because it can return undefined
   // usual flow goes like scale.clamp().domain()...
@@ -101,7 +112,7 @@ export function scaleTime() {
     if (c === undefined) return clampFunc !== identity;
     clampFunc = c ? clamper(+domain[0], +domain[1]) : identity;
     return rescale();
-  };
+  } as ScaleTime["clamp"];
 
   return scale;
 }
