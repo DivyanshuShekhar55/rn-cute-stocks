@@ -51,10 +51,11 @@ const HorizontalBarChart = ({
   badgeFontColor = "#fff",
   scrollable = true,
   minBarHeight = MIN_BAR_HEIGHT_DEFAULT,
+  xLabelHeight = 0.1,
+  yLabelWidth = 0.2,
   animationType = "spring",
   animationConfig,
 }: HorizontalBarChartProps): React.ReactElement => {
-
   // Text init
   const font = React.useMemo(
     () =>
@@ -71,8 +72,8 @@ const HorizontalBarChart = ({
   const values = React.useMemo(() => data.map((d) => d.y), [data]);
   const LabelCount = data.length;
 
-  const xAxisHeight = 0.1 * height; // numeric tick label strip at top
-  const yAxisWidth = 0.18 * width; // category label strip on left
+  const xAxisHeight = xLabelHeight * height; // numeric tick label strip at top
+  const yAxisWidth = yLabelWidth * width; // category label strip on left
   const chartWidth = width - yAxisWidth; // horizontal drawing area (bars)
   const fixedChartHeight = height - xAxisHeight; // vertical drawing area (viewport)
 

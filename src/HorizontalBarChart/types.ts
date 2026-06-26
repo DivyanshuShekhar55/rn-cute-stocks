@@ -17,6 +17,8 @@ import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
  * @param badgeFontColor font color of the active bar's value badge
  * @param scrollable whether chart canvas should scroll or fit all bars into given dimension
  * @param minBarHeight minimum bar size when `scrollable` is true
+ * @param xLabelHeight fraction of height to be reserved for x-axis label area
+ * @param yLabelWidth fraction of width to be reserved for y-axis label area
  * @param animationType "spring" | "linear" | "none"
  * @param animationConfig custom config for motion when animation is applied
  * @returns HorizontalBarChart component
@@ -43,6 +45,10 @@ export interface HorizontalBarChartProps {
   /** Minimum bar height in px when scrollable. Default: 25 */
   minBarHeight?: number;
   /** Tap animation type. Default: "spring" */
+
+  xLabelHeight?: number;
+  yLabelWidth?: number;
+
   animationType?: AnimationType;
   /**
    * Config passed to the animation driver.

@@ -54,17 +54,18 @@ const VerticalBarChart = ({
   barGap = 0.2,
   bend = 10,
   numYLabels = 3,
-  fontSize=12,
+  fontSize = 12,
   labelFontColor = "#f0f0f0",
   labelActiveFontColor = "#fff",
   badgeBackgroundColor = "#333",
   badgeFontColor = "#fff",
   scrollable = true,
   minBarWidth = MIN_BAR_WIDTH_DEFAULT,
+  xLabelHeight = 0.1,
+  yLabelWidth = 0.2,
   animationType = "spring",
   animationConfig,
 }: BarChartProps): React.ReactElement => {
-
   // Text init
   const font = React.useMemo(
     () =>
@@ -76,15 +77,15 @@ const VerticalBarChart = ({
       }),
     [fontSize],
   );
-  
+
   // memoized so a scroll-triggered re-render doesn't rebuild these arrays —
   const xAxisLabels = React.useMemo(() => data.map((d) => d.x), [data]);
   const yAxisLabels = React.useMemo(() => data.map((d) => d.y), [data]);
   const labelCount = data.length;
 
   // ── Axis dimensions ───────────────────────────────────────────────────────
-  const xAxisHeight = 0.1 * height; // numeric tick label strip — kept as plain RN Text since it never scrolls
-  const yAxisWidth = 0.15 * width;
+  const xAxisHeight = xLabelHeight * height; // numeric tick label strip — kept as plain RN Text since it never scrolls
+  const yAxisWidth = yLabelWidth * width;
   const fixedChartWidth = width - yAxisWidth; // visible viewport width (NOT the full scrollable width)
   const chartHeight = height - xAxisHeight;
 
