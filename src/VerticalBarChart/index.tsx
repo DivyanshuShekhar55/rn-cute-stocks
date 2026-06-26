@@ -26,6 +26,8 @@ import {
   RoundedRect,
   Text as SkiaText,
   matchFont,
+  rect,
+  rrect,
 } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
@@ -38,14 +40,7 @@ import {
 
 const MIN_BAR_WIDTH_DEFAULT = 25;
 
-const FONT_SIZE = 12;
 const fontFamily = Platform.select({ ios: "Helvetica", default: "serif" });
-const font = matchFont({
-  fontFamily,
-  fontSize: FONT_SIZE,
-  fontStyle: "italic",
-  fontWeight: "bold",
-});
 
 /**
  * Renders a horizontally-laid-out, vertically-growing bar chart.
@@ -59,13 +54,29 @@ const VerticalBarChart = ({
   barGap = 0.2,
   bend = 10,
   numYLabels = 3,
+  fontSize=12,
   labelFontColor = "#f0f0f0",
   labelActiveFontColor = "#fff",
-  scrollable = false,
+  badgeBackgroundColor = "#333",
+  badgeFontColor = "#fff",
+  scrollable = true,
   minBarWidth = MIN_BAR_WIDTH_DEFAULT,
   animationType = "spring",
   animationConfig,
 }: BarChartProps): React.ReactElement => {
+
+  // Text init
+  const font = React.useMemo(
+    () =>
+      matchFont({
+        fontFamily,
+        fontSize,
+        fontStyle: "italic",
+        fontWeight: "bold",
+      }),
+    [fontSize],
+  );
+  
   // memoized so a scroll-triggered re-render doesn't rebuild these arrays —
   const xAxisLabels = React.useMemo(() => data.map((d) => d.x), [data]);
   const yAxisLabels = React.useMemo(() => data.map((d) => d.y), [data]);
@@ -77,14 +88,15 @@ const VerticalBarChart = ({
   const fixedChartWidth = width - yAxisWidth; // visible viewport width (NOT the full scrollable width)
   const chartHeight = height - xAxisHeight;
 
-  const LINE_HEIGHT = FONT_SIZE * 1.2;
+  const LINE_HEIGHT = fontSize * 1.2;
   const textOffset = LINE_HEIGHT / 2;
 
   // category labels now live INSIDE the canvas (drawn in Skia, below the
   // bars) instead of in a separate row below it — so chartHeight itself
   // needs to set aside a strip for them. Bars only get to use the
   // remaining space, barAreaHeight, not the full chartHeight.
-  const LABEL_AREA_HEIGHT = FONT_SIZE + 8;
+  // barAreaHeight is like the baseline pixel where bars start (their bottom)
+  const LABEL_AREA_HEIGHT = fontSize + 8;
   const barAreaHeight = chartHeight - LABEL_AREA_HEIGHT;
 
   const maxValue = React.useMemo(() => max(yAxisLabels) || 1, [yAxisLabels]);
@@ -318,7 +330,7 @@ const VerticalBarChart = ({
                 const labelTextWidth = labelWidths[index] ?? 0;
                 const labelX =
                   finalizedXPosition + barWidth / 2 - labelTextWidth / 2;
-                const labelY = barAreaHeight + FONT_SIZE + 2; // just below the bar baseline, now inside the canvas's own height
+                const labelY = barAreaHeight + fontSize + 2; // just below the bar baseline, now inside the canvas's own height
 
                 return (
                   <Group key={`bar-${index}`}>
@@ -350,6 +362,54 @@ const VerticalBarChart = ({
                         color={isActive ? labelActiveFontColor : labelFontColor}
                       />
                     )}
+                    {/* value badge — only on the active/selected bar */}
+                    {/* we show the value badge at 70% lenggth of the active bar, not at top, else for max bars it would cut off */}
+                    {isActive &&
+                      font &&
+                      (() => {
+                        const valueStr = value.toFixed(2);
+                        const badgeTextWidth = font.getTextWidth(valueStr);
+                        const badgePaddingX = 6;
+                        const badgePaddingY = 3;
+                        const badgeWidth = badgeTextWidth + badgePaddingX * 2;
+                        const badgeHeight = fontSize + badgePaddingY * 2;
+
+                        const badgeY = barAreaHeight - barHeight * 0.7; // 70% of height
+                        const badgeX =
+                          finalizedXPosition + barWidth / 2 - badgeWidth / 2;
+
+                        return (
+                          <Group key={`badge-${index}`}>
+                            <RoundedRect
+                              // ((x, y, width, height), rx, ry)
+                              rect={rrect(
+                                rect(
+                                  badgeX,
+                                  badgeY - badgeHeight / 2,
+                                  badgeWidth,
+                                  badgeHeight,
+                                ),
+                                4,
+                                4,
+                              )}
+                              color={badgeBackgroundColor}
+                            />
+                            <SkiaText
+                              x={badgeX + badgePaddingX}
+                              y={
+                                badgeY -
+                                badgeHeight / 2 +
+                                badgeHeight -
+                                badgePaddingY -
+                                2
+                              }
+                              text={valueStr}
+                              font={font}
+                              color={badgeFontColor}
+                            />
+                          </Group>
+                        );
+                      })()}
                   </Group>
                 );
               })}
