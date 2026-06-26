@@ -25,6 +25,7 @@ import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
  * @param yLabelWidth fraction of width to be reserved for y-axis label area
  * @param animationType "spring" | "linear" | "none"
  * @param animationConfig custom config for motion when animation is applied
+ * @param jsThrottleMs time (in ms) after which to update updates on the JS thread. WARNING : Keeping throttle too low can crash the app, due to too many updates per second
  * @returns VerticalBarChart component
  */
 export interface BarChartProps {
@@ -64,4 +65,6 @@ export interface BarChartProps {
    * Ignored when animationType is "none".
    */
   animationConfig?: AnimationConfig;
+
+  jsThrottleMs?: number;
 }

@@ -57,14 +57,14 @@ const LineChart = ({
     const result = GetYForX(clampedX, width, data, height);
 
     // if returned position was undefined (due to bad data passed in) cursor won't update
-    if (!result) return
+    if (!result) return;
     yPos.value = result.yCoord;
 
     const now = Date.now();
     if (now - lastSetTime.current > 100) {
       // ~10 updates/sec — plenty readable for a number
       lastSetTime.current = now;
-      setValueText(result.actualVal.toFixed(2));
+      setValueText(result.actualVal.toFixed(2) ?? "-");
     }
   };
 

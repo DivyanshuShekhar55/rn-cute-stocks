@@ -55,6 +55,7 @@ const HorizontalBarChart = ({
   yLabelWidth = 0.2,
   animationType = "spring",
   animationConfig,
+  jsThrottleMs = 100,
 }: HorizontalBarChartProps): React.ReactElement => {
   // Text init
   const font = React.useMemo(
@@ -200,7 +201,7 @@ const HorizontalBarChart = ({
     () => scrollY.value,
     (current) => {
       const now = Date.now();
-      if (now - lastSyncTime.value > 100) {
+      if (now - lastSyncTime.value > jsThrottleMs) {
         lastSyncTime.value = now;
         // TODO : htnk why dont we handle this all on the ui thread itself?
         scheduleOnRN(syncScrollToJS, current);

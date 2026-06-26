@@ -84,7 +84,7 @@ const TimeSeriesChart = ({
     const now = Date.now();
     if (now - lastSetTime.current > 100) {
       lastSetTime.current = now;
-      setValueText(result.actualVal.toFixed(2));
+      setValueText(result.actualVal.toFixed(2) ?? "-");
     }
   };
 

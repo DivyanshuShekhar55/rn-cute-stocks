@@ -65,6 +65,7 @@ const VerticalBarChart = ({
   yLabelWidth = 0.2,
   animationType = "spring",
   animationConfig,
+  jsThrottleMs = 100,
 }: BarChartProps): React.ReactElement => {
   // Text init
   const font = React.useMemo(
@@ -159,7 +160,7 @@ const VerticalBarChart = ({
     () => scrollX.value,
     (current) => {
       const now = Date.now();
-      if (now - lastSyncTime.value > 100) {
+      if (now - lastSyncTime.value > jsThrottleMs) {
         lastSyncTime.value = now;
         scheduleOnRN(syncScrollToJS, current);
       }
