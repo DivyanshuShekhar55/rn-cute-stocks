@@ -10,8 +10,11 @@ import { AnimationConfig, AnimationType, BarDataItem } from "../shared/types";
  * @param barGap a fraction of bar bandwidth to use as padding between bars (0<= barGap <= 1)
  * @param bend corner radius for bars
  * @param numXLabels numbers of labels to render for the given chart
+ * @param fontSize font size for labels and badge text
  * @param labelFontColor font colour for the axis labels
  * @param labelActiveFontColor font colour for the axis labels when selected
+ * @param badgeBackgroundColor bg color for the active bar's value badge
+ * @param badgeFontColor font color of the active bar's value badge
  * @param scrollable whether chart canvas should scroll or fit all bars into given dimension
  * @param minBarHeight minimum bar size when `scrollable` is true
  * @param animationType "spring" | "linear" | "none"
@@ -28,8 +31,12 @@ export interface HorizontalBarChartProps {
   bend?: number;
   numXLabels?: number;
 
+  fontSize?: number;
+
   labelFontColor?: string;
   labelActiveFontColor?: string;
+  badgeBackgroundColor?: string;
+  badgeFontColor?: string;
 
   /** If true, bars scroll vertically; category labels stay sticky on left. Default: false */
   scrollable?: boolean;

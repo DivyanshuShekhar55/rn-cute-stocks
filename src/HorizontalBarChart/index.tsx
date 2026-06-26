@@ -16,8 +16,10 @@ import {
   Canvas,
   Group,
   matchFont,
+  rect,
   Rect,
   RoundedRect,
+  rrect,
   Text as SkiaText,
 } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -32,12 +34,6 @@ import { scheduleOnRN } from "react-native-worklets";
 const MIN_BAR_HEIGHT_DEFAULT = 25;
 
 const fontFamily = Platform.select({ ios: "Helvetica", default: "serif" });
-const font = matchFont({
-  fontFamily,
-  fontSize: 14,
-  fontStyle: "italic",
-  fontWeight: "bold",
-});
 
 const HorizontalBarChart = ({
   width,
@@ -48,13 +44,29 @@ const HorizontalBarChart = ({
   barGap = 0.2,
   bend = 10,
   numXLabels = 3,
+  fontSize = 12,
   labelFontColor = "#f0f0f0",
   labelActiveFontColor = "#fff",
+  badgeBackgroundColor = "#333",
+  badgeFontColor = "#fff",
   scrollable = true,
   minBarHeight = MIN_BAR_HEIGHT_DEFAULT,
   animationType = "spring",
   animationConfig,
 }: HorizontalBarChartProps): React.ReactElement => {
+
+  // Text init
+  const font = React.useMemo(
+    () =>
+      matchFont({
+        fontFamily,
+        fontSize,
+        fontStyle: "italic",
+        fontWeight: "bold",
+      }),
+    [fontSize],
+  );
+
   const categoryLabels = React.useMemo(() => data.map((d) => d.x), [data]);
   const values = React.useMemo(() => data.map((d) => d.y), [data]);
   const LabelCount = data.length;
@@ -64,8 +76,7 @@ const HorizontalBarChart = ({
   const chartWidth = width - yAxisWidth; // horizontal drawing area (bars)
   const fixedChartHeight = height - xAxisHeight; // vertical drawing area (viewport)
 
-  const FONT_SIZE = 12;
-  const LINE_HEIGHT = FONT_SIZE * 1.2;
+  const LINE_HEIGHT = fontSize * 1.2;
   const textOffset = LINE_HEIGHT / 2;
 
   const maxValue = React.useMemo(() => max(values) || 1, [values]);
@@ -337,12 +348,54 @@ const HorizontalBarChart = ({
                     {font && (
                       <SkiaText
                         x={yAxisWidth - labelWidths[index] - 8} // right-align
-                        y={finalizedYPosition + barHeight / 2 + FONT_SIZE / 3}
+                        y={finalizedYPosition + barHeight / 2 + fontSize / 3}
                         text={label}
                         font={font}
                         color={isActive ? labelActiveFontColor : labelFontColor}
                       />
                     )}
+
+                    {/* value badge — only on the active/selected bar */}
+                    {isActive &&
+                      font &&
+                      (() => {
+                        const valueStr = value.toFixed(2);
+                        const badgeTextWidth = font.getTextWidth(valueStr);
+                        const badgePaddingX = 6;
+                        const badgePaddingY = 3;
+                        const badgeWidth = badgeTextWidth + badgePaddingX * 2;
+                        const badgeHeight = fontSize + badgePaddingY * 2;
+
+                        // 70% along the bar's width, so max-width bars don't clip the badge off-canvas
+                        const badgeX = yAxisWidth + fullBarWidth * 0.7;
+                        const badgeCenterY = finalizedYPosition + barHeight / 2;
+
+                        return (
+                          <Group key={`badge-${index}`}>
+                            <RoundedRect
+                              // ((x, y, width, height), rx, ry)
+                              rect={rrect(
+                                rect(
+                                  badgeX - badgeWidth / 2,
+                                  badgeCenterY - badgeHeight / 2,
+                                  badgeWidth,
+                                  badgeHeight,
+                                ),
+                                4,
+                                4,
+                              )}
+                              color={badgeBackgroundColor}
+                            />
+                            <SkiaText
+                              x={badgeX - badgeWidth / 2 + badgePaddingX}
+                              y={badgeCenterY + fontSize / 3}
+                              text={valueStr}
+                              font={font}
+                              color={badgeFontColor}
+                            />
+                          </Group>
+                        );
+                      })()}
                   </Group>
                 );
               })}
