@@ -29,7 +29,7 @@ export interface TimerSeriesPathConfig extends TimeSeriesPathResult {
  * @param height height for the given chart (px)
  * @param chartData data for the chart
  * @param chartContainerStyles (optional) StyleSheet object for the chart container
- * @param priceTextStyles (optional) Stylesheet object for the chart heading text
+ * @param textStyles (optional) Stylesheet object for the chart heading text
  * @param curveType (optional) underlying curve mathematics (see `@type CurveType`)
  * @param colors (optional) an array of colours. If multiple colors provided, curve will have linear gradient of all these colors.
  * @param cursorComponent (optional) cursor for navigating the timeseries chart
@@ -42,7 +42,7 @@ export interface TimeSeriesChartProps {
   height: number;
   chartData: TimeSeriesDataPoint[];
   chartContainerStyles?: StyleProp<ViewStyle>;
-  priceTextStyles?: StyleProp<TextStyle>;
+  textStyles?: StyleProp<TextStyle>;
   curveType?: CurveType;
   colors?: string[];
   cursorComponent?: (props: CursorProps) => React.ReactElement;

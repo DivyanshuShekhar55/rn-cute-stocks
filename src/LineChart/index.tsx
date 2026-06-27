@@ -64,7 +64,10 @@ const LineChart = ({
     if (now - lastSetTime.current > 100) {
       // ~10 updates/sec — plenty readable for a number
       lastSetTime.current = now;
-      setValueText(result.actualVal.toFixed(2) ?? "-");
+
+      // show only good data :)
+      const isBad = result.actualVal == null || isNaN(result.actualVal);
+      setValueText(isBad ? "-" : result.actualVal.toFixed(2));
     }
   };
 

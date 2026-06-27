@@ -129,7 +129,8 @@ const HorizontalBarChart = ({
       scaleBand<string>()
         .domain(categoryLabels)
         .range([0, chartHeight])
-        .paddingInner(barGap),
+        .paddingInner(barGap)
+        .paddingOuter(barGap/2),
     [categoryLabels, chartHeight, barGap],
   );
   const barHeight = yScale.bandwidth();

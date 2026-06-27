@@ -135,7 +135,8 @@ const VerticalBarChart = ({
       scaleBand<string>()
         .domain(xAxisLabels)
         .range([0, chartWidth])
-        .paddingInner(barGap),
+        .paddingInner(barGap)
+        .paddingOuter(barGap/2),
     [xAxisLabels, chartWidth, barGap],
   );
   const barWidth = xScale.bandwidth();

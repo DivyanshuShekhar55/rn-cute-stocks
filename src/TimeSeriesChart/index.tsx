@@ -32,7 +32,7 @@ const TimeSeriesChart = ({
   height,
   chartData,
   chartContainerStyles,
-  priceTextStyles,
+  textStyles,
   curveType = "curveBasis",
   colors = ["#000"],
   cursorComponent,
@@ -84,7 +84,9 @@ const TimeSeriesChart = ({
     const now = Date.now();
     if (now - lastSetTime.current > 100) {
       lastSetTime.current = now;
-      setValueText(result.actualVal.toFixed(2) ?? "-");
+      // only show good data :)
+      const isBad = result.actualVal == null || isNaN(result.actualVal);
+      setValueText(isBad ? "-" : result.actualVal.toFixed(2));
     }
   };
 
@@ -97,7 +99,7 @@ const TimeSeriesChart = ({
 
   return (
     <View style={[styles.container, chartContainerStyles]}>
-      <Text style={[styles.priceText, priceTextStyles]}>
+      <Text style={[styles.priceText, textStyles]}>
         {valuePrefix}
         {valueText}
       </Text>

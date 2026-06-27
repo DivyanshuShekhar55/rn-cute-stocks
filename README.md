@@ -25,6 +25,7 @@ npm install @shopify/react-native-skia react-native-reanimated react-native-gest
 ```
 
 You also need a d3.js dependency :
+
 ```bash
 npm install d3-shape
 ```
@@ -44,7 +45,6 @@ npm install rn-cute-charts
 ## Important Notes
 
 - Wrap your app in `GestureHandlerRootView` from `react-native-gesture-handler` (typically in your root layout file)
-- The library uses `react-native-worklets` for smooth updates via `scheduleOnRN()` to avoid blocking the JS thread (use version 0.8.0 or above)
 
 ## A note on bad data
 
@@ -99,28 +99,28 @@ export default function App() {
 
 ### API Reference
 
-| Prop                   | Type              | Default      | Description                                            |
-| ---------------------- | ----------------- | ------------ | ---------------------------------------------------------------------- |
-| `width`                | `number`          | **required** | Chart width                                                            |
-| `height`               | `number`          | **required** | Chart height                                                           |
-| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                                    |
-| `color`                | `string`          | `"#9672f8"`  | Default bar color                                                      |
-| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                                         |
-| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                                       |
-| `bend`                 | `number`          | `10`         | Top corner radius of bars                                              |
-| `numYLabels`           | `number`          | `3`          | Number of Y-axis tick labels                                           |
+| Prop                   | Type              | Default      | Description                                                           |
+| ---------------------- | ----------------- | ------------ | --------------------------------------------------------------------- |
+| `width`                | `number`          | **required** | Chart width                                                           |
+| `height`               | `number`          | **required** | Chart height                                                          |
+| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                                   |
+| `color`                | `string`          | `"#9672f8"`  | Default bar color                                                     |
+| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                                        |
+| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                                      |
+| `bend`                 | `number`          | `10`         | Top corner radius of bars                                             |
+| `numYLabels`           | `number`          | `3`          | Number of Y-axis tick labels                                          |
 | `fontSize`             | `number`          | `12`         | Font size for axis labels and the value badge                         |
-| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                                      |
-| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected                                 |
+| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                                     |
+| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected                                |
 | `badgeBackgroundColor` | `string`          | `"#333"`     | Background colour of the active bar's value badge                     |
 | `badgeFontColor`       | `string`          | `"#fff"`     | Text colour of the active bar's value badge                           |
-| `scrollable`           | `boolean`         | `false`      | Enable horizontal scroll when bars are too many to fit                 |
-| `minBarWidth`          | `number`          | `25`         | Minimum bar width in px when scrollable                                |
-| `xLabelHeight`         | `number`          | `0.1`        | Fraction of `height` reserved for the x-axis category label strip      |
-| `yLabelWidth`          | `number`          | `0.20`       | Fraction of `width` reserved for the y-axis numeric label strip        |
-| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`                     |
-| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                                        |
-| `jsThrottleMs`         | `number`          | `100`        | Throttle (ms) for JS-thread updates during scroll. See warning below.  |
+| `scrollable`           | `boolean`         | `false`      | Enable horizontal scroll when bars are too many to fit                |
+| `minBarWidth`          | `number`          | `25`         | Minimum bar width in px when scrollable                               |
+| `xLabelHeight`         | `number`          | `0.1`        | Fraction of `height` reserved for the x-axis category label strip     |
+| `yLabelWidth`          | `number`          | `0.20`       | Fraction of `width` reserved for the y-axis numeric label strip       |
+| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`                    |
+| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                                       |
+| `jsThrottleMs`         | `number`          | `100`        | Throttle (ms) for JS-thread updates during scroll. See warning below. |
 
 > ⚠️ **`jsThrottleMs` warning:** lowering this too far increases how often React state updates fire during scroll/pan. Too low a value (e.g. under ~30–40ms) can flood the JS thread and crash or freeze the app on lower-end devices. Raise it, don't lower it, if you run into performance issues.
 
@@ -166,28 +166,28 @@ export default function App() {
 
 ### API Reference
 
-| Prop                   | Type              | Default      | Description                                                            |
-| ---------------------- | ----------------- | ------------ | ------------------------------------------------------------------------------------ |
-| `width`                | `number`          | **required** | Chart width                                                                           |
-| `height`               | `number`          | **required** | Chart height                                                                          |
-| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                                                  |
-| `color`                | `string`          | `"#9672f8"`  | Default bar color                                                                     |
-| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                                                       |
-| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                                                      |
-| `bend`                 | `number`          | `10`         | Right corner radius of bars                                                          |
-| `numXLabels`           | `number`          | `3`          | Number of X-axis (numeric) tick labels                                              |
-| `fontSize`             | `number`          | `12`         | Font size for axis labels and the value badge                                       |
-| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                                                    |
-| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected                                              |
-| `badgeBackgroundColor` | `string`          | `"#333"`     | Background colour of the active bar's value badge                                  |
-| `badgeFontColor`       | `string`          | `"#fff"`     | Text colour of the active bar's value badge                                         |
-| `scrollable`           | `boolean`         | `false`      | Enable vertical scroll when bars are too many to fit                                |
-| `minBarHeight`         | `number`          | `25`         | Minimum bar height in px when scrollable                                            |
-| `xAxisHeight`          | `number`          | `0.1`        | Fraction of `height` reserved for the x-axis numeric tick label strip               |
-| `yAxisWidth`           | `number`          | `0.20`       | Fraction of `width` reserved for the y-axis category label strip                     |
-| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`                                   |
-| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                                                      |
-| `jsThrottleMs`         | `number`          | `100`        | Throttle (ms) for JS-thread updates during scroll. See warning below.               |
+| Prop                   | Type              | Default      | Description                                                           |
+| ---------------------- | ----------------- | ------------ | --------------------------------------------------------------------- |
+| `width`                | `number`          | **required** | Chart width                                                           |
+| `height`               | `number`          | **required** | Chart height                                                          |
+| `data`                 | `BarDataItem[]`   | **required** | Array of `{ x: string, y: number }`                                   |
+| `color`                | `string`          | `"#9672f8"`  | Default bar color                                                     |
+| `activeColor`          | `string`          | `"#ff7e5f"`  | Color of the tapped/active bar                                        |
+| `barGap`               | `number`          | `0.2`        | Padding ratio between bars (0–1)                                      |
+| `bend`                 | `number`          | `10`         | Right corner radius of bars                                           |
+| `numXLabels`           | `number`          | `3`          | Number of X-axis (numeric) tick labels                                |
+| `fontSize`             | `number`          | `12`         | Font size for axis labels and the value badge                         |
+| `labelFontColor`       | `string`          | `#f0f0f0`    | Label text colour                                                     |
+| `labelActiveFontColor` | `string`          | `#fff`       | Label text colour when active/selected                                |
+| `badgeBackgroundColor` | `string`          | `"#333"`     | Background colour of the active bar's value badge                     |
+| `badgeFontColor`       | `string`          | `"#fff"`     | Text colour of the active bar's value badge                           |
+| `scrollable`           | `boolean`         | `false`      | Enable vertical scroll when bars are too many to fit                  |
+| `minBarHeight`         | `number`          | `25`         | Minimum bar height in px when scrollable                              |
+| `xAxisHeight`          | `number`          | `0.1`        | Fraction of `height` reserved for the x-axis numeric tick label strip |
+| `yAxisWidth`           | `number`          | `0.20`       | Fraction of `width` reserved for the y-axis category label strip      |
+| `animationType`        | `AnimationType`   | `"spring"`   | Tap animation: `"spring"`, `"linear"`, or `"none"`                    |
+| `animationConfig`      | `AnimationConfig` | see below    | Config for the animation driver                                       |
+| `jsThrottleMs`         | `number`          | `100`        | Throttle (ms) for JS-thread updates during scroll. See warning below. |
 
 > ⚠️ **`jsThrottleMs` warning:** lowering this too far increases how often React state updates fire during scroll/pan. Too low a value (e.g. under ~30–40ms) can flood the JS thread and crash or freeze the app on lower-end devices. Raise it, don't lower it, if you run into performance issues.
 
@@ -245,19 +245,19 @@ export default function App() {
 
 ### API Reference
 
-| Prop                   | Type                                   | Default        | Description                                              |
-| ---------------------- | --------------------------------------------------------------------- | -------------- | -------------------------------------------------------- |
-| `width`                | `number`                               | **required**   | Chart canvas width                                       |
-| `height`               | `number`                               | **required**   | Chart canvas height                                      |
-| `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`                      |
-| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line                       |
-| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)                     |
-| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                        |
-| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                                  |
-| `valuePrefix`          | `string`                               | `""`           | Prefix for the displayed value e.g. `"$"`, `"€"`         |
-| `valueTextStyles`      | `TextStyle`                            | `{}`           | Styles for the value label above the chart               |
-| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                           |
-| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                                  |
+| Prop                   | Type                                   | Default        | Description                                      |
+| ---------------------- | -------------------------------------- | -------------- | ------------------------------------------------ |
+| `width`                | `number`                               | **required**   | Chart canvas width                               |
+| `height`               | `number`                               | **required**   | Chart canvas height                              |
+| `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`              |
+| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line               |
+| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)             |
+| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                          |
+| `valuePrefix`          | `string`                               | `""`           | Prefix for the displayed value e.g. `"$"`, `"€"` |
+| `valueTextStyles`      | `TextStyle`                            | `{}`           | Styles for the value label above the chart       |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                   |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                          |
 
 > If the cursor lands on a point that can't be resolved (bad/missing data), the value label shows **`"-"`** instead of a stale or incorrect number, and the cursor itself stops updating until it's back over valid data.
 
@@ -295,39 +295,40 @@ export default function App() {
 ### API Reference
 
 | Prop                   | Type                                   | Default                           | Description                                              |
-| ---------------------- | --------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------- |
-| `width`                | `number`                               | **required**                      | Chart canvas width                                        |
-| `height`               | `number`                               | **required**                      | Chart canvas height                                       |
-| `chartData`            | `TimeSeriesDataPoint[]`                | **required**                      | Array of `{ x: number, y: number }` where `x` is Unix ms  |
-| `colors`               | `string[]`                             | `["#000"]`                        | Gradient colors for the chart line                        |
-| `curveType`            | `CurveType`                            | `"curveBasis"`                    | Curve interpolation type                                  |
-| `curveStrokeWidth`     | `number`                               | `2`                                | Line stroke width                                          |
-| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`                        | Fill or stroke the path                                    |
-| `priceTextStyles`      | `TextStyle`                            | `{}`                               | Styles for the price label above the chart                |
-| `chartContainerStyles` | `ViewStyle`                            | `{}`                               | Styles for the outer container                            |
-| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor                    | Custom cursor component                                   |
-| `ySearch`              | `SearchAlgorithm`                      | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan                              |
+| ---------------------- | -------------------------------------- | --------------------------------- | -------------------------------------------------------- |
+| `width`                | `number`                               | **required**                      | Chart canvas width                                       |
+| `height`               | `number`                               | **required**                      | Chart canvas height                                      |
+| `chartData`            | `TimeSeriesDataPoint[]`                | **required**                      | Array of `{ x: number, y: number }` where `x` is Unix ms |
+| `colors`               | `string[]`                             | `["#000"]`                        | Gradient colors for the chart line                       |
+| `curveType`            | `CurveType`                            | `"curveBasis"`                    | Curve interpolation type                                 |
+| `curveStrokeWidth`     | `number`                               | `2`                               | Line stroke width                                        |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`                        | Fill or stroke the path                                  |
+| `textStyles`           | `TextStyle`                            | `{}`                              | Styles for the label above the chart                     |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`                              | Styles for the outer container                           |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor                    | Custom cursor component                                  |
+| `ySearch`              | `SearchAlgorithm`                      | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan                            |
+| `valuePrefix`          | `string`                               | `""`                              | Any Prefix to attach to numeric value text               |
 
 > Same bad-data behaviour as Line Chart: the price label shows **`"-"`** and the cursor freezes on unresolvable points, rather than guessing or showing wrong data.
 
 ### Line vs Time Series — which to use?
 
 |               | `LineChart`                  | `TimeSeriesChart`             |
-| ------------- | ----------------------------- | ------------------------------ |
-| X-axis data   | Any string label              | Unix timestamp (ms)             |
-| Point spacing | Always equal                  | Proportional to time gap        |
-| Use case      | categories and custom labels  | Stock prices, sensor readings   |
-| X lookup      | O(1) direct index             | Binary search + interpolation   |
+| ------------- | ---------------------------- | ----------------------------- |
+| X-axis data   | Any string label             | Unix timestamp (ms)           |
+| Point spacing | Always equal                 | Proportional to time gap      |
+| Use case      | categories and custom labels | Stock prices, sensor readings |
+| X lookup      | O(1) direct index            | Binary search + interpolation |
 
 ### Curve Types (both line charts)
 
 | Value              | Description                      |
-| ------------------ | --------------------------------- |
-| `"curveBasis"`     | Smooth bezier (default)           |
-| `"curveBumpX"`     | Bump curve, good for time-series  |
-| `"curveLinear"`    | Straight lines between points     |
-| `"curveMonotoneX"` | Monotone cubic interpolation      |
-| `"natural"`        | Natural cubic spline              |
+| ------------------ | -------------------------------- |
+| `"curveBasis"`     | Smooth bezier (default)          |
+| `"curveBumpX"`     | Bump curve, good for time-series |
+| `"curveLinear"`    | Straight lines between points    |
+| `"curveMonotoneX"` | Monotone cubic interpolation     |
+| `"natural"`        | Natural cubic spline             |
 
 ### Custom Cursor
 
@@ -378,14 +379,14 @@ export default function App() {
 ### API Reference
 
 | Prop               | Type             | Default      | Description                                                       |
-| ------------------ | ----------------- | ------------ | ------------------------------------------------------------------- |
-| `width`            | `number`         | **required** | Chart width                                                          |
-| `height`           | `number`         | **required** | Chart height                                                         |
-| `data`             | `PieDataPoint[]` | **required** | Array of `{ label, value, color }`                                   |
-| `donut`            | `boolean`        | `false`      | Render as a donut chart                                              |
-| `innerRadiusRatio` | `number`         | `0.6`        | Inner hole size as ratio of outer radius (only when `donut=true`)    |
-| `labelBgColor`     | `string`         | `"#333"`     | Background color of the tap label bubble                            |
-| `labelFontColor`   | `string`         | `"#fff"`     | Text color of the tap label bubble                                  |
+| ------------------ | ---------------- | ------------ | ----------------------------------------------------------------- |
+| `width`            | `number`         | **required** | Chart width                                                       |
+| `height`           | `number`         | **required** | Chart height                                                      |
+| `data`             | `PieDataPoint[]` | **required** | Array of `{ label, value, color }`                                |
+| `donut`            | `boolean`        | `false`      | Render as a donut chart                                           |
+| `innerRadiusRatio` | `number`         | `0.6`        | Inner hole size as ratio of outer radius (only when `donut=true`) |
+| `labelBgColor`     | `string`         | `"#333"`     | Background color of the tap label bubble                          |
+| `labelFontColor`   | `string`         | `"#fff"`     | Text color of the tap label bubble                                |
 
 ---
 
@@ -430,35 +431,35 @@ export default function App() {
 ### API Reference
 
 | Prop                    | Type                 | Default                   | Description                                        |
-| ----------------------- | ---------------------- | -------------------------- | ----------------------------------------------------- |
-| `width`                 | `number`             | **required**              | Total chart width including axis margins              |
-| `height`                | `number`             | **required**              | Total chart height including axis margins             |
-| `data`                  | `Candle[]`           | **required**              | Array of OHLC candles with Unix second timestamps      |
-| `bgCol`                 | `string`             | `"white"`                 | Background color                                       |
-| `fill`                  | `[string, string]`   | `["green","red"]`         | Colors for bullish and bearish candles                 |
-| `currency`              | `string`             | `"$"`                     | Currency symbol for crosshair price label              |
-| `labelFontSize`         | `number`             | `18`                      | Font size for crosshair price label                    |
-| `labelRightOffset`      | `number`             | `96`                      | Right offset for crosshair price label                 |
-| `labelFontCol`          | `string`             | `"black"`                 | Color of crosshair price label                         |
-| `numLabels`             | `number`             | `5`                       | Number of labels on each axis                          |
-| `axisFontColor`         | `string`             | `"black"`                 | Axis label text color                                  |
-| `axisFontSize`          | `number`             | `14`                      | Axis label font size                                    |
-| `axisLabelRightOffset`  | `number`             | `54`                      | Space reserved on right for Y-axis labels               |
-| `axisLabelBottomOffset` | `number`             | `20`                      | Space reserved at bottom for X-axis labels              |
-| `axisLinePathEffect`    | `AxisLinePathEffect` | `"dashed"`                | Grid line style: `"dashed"`, `"line"`, or `"none"`      |
-| `axisLineColor`         | `string`             | `"gray"`                  | Grid line color                                         |
-| `wickColor`             | `string`             | `"rgba(255,255,255,0.6)"` | Candle wick color                                       |
-| `crossHairColor`        | `string`             | `"rgba(255,255,255,0.6)"` | Crosshair line color                                    |
-| `maxVisibleCandles`     | `number`             | `50`                      | Zoom-out limit                                          |
-| `minVisibleCandles`     | `number`             | `10`                      | Zoom-in limit                                           |
+| ----------------------- | -------------------- | ------------------------- | -------------------------------------------------- |
+| `width`                 | `number`             | **required**              | Total chart width including axis margins           |
+| `height`                | `number`             | **required**              | Total chart height including axis margins          |
+| `data`                  | `Candle[]`           | **required**              | Array of OHLC candles with Unix second timestamps  |
+| `bgCol`                 | `string`             | `"white"`                 | Background color                                   |
+| `fill`                  | `[string, string]`   | `["green","red"]`         | Colors for bullish and bearish candles             |
+| `currency`              | `string`             | `"$"`                     | Currency symbol for crosshair price label          |
+| `labelFontSize`         | `number`             | `18`                      | Font size for crosshair price label                |
+| `labelRightOffset`      | `number`             | `96`                      | Right offset for crosshair price label             |
+| `labelFontCol`          | `string`             | `"black"`                 | Color of crosshair price label                     |
+| `numLabels`             | `number`             | `5`                       | Number of labels on each axis                      |
+| `axisFontColor`         | `string`             | `"black"`                 | Axis label text color                              |
+| `axisFontSize`          | `number`             | `14`                      | Axis label font size                               |
+| `axisLabelRightOffset`  | `number`             | `54`                      | Space reserved on right for Y-axis labels          |
+| `axisLabelBottomOffset` | `number`             | `20`                      | Space reserved at bottom for X-axis labels         |
+| `axisLinePathEffect`    | `AxisLinePathEffect` | `"dashed"`                | Grid line style: `"dashed"`, `"line"`, or `"none"` |
+| `axisLineColor`         | `string`             | `"gray"`                  | Grid line color                                    |
+| `wickColor`             | `string`             | `"rgba(255,255,255,0.6)"` | Candle wick color                                  |
+| `crossHairColor`        | `string`             | `"rgba(255,255,255,0.6)"` | Crosshair line color                               |
+| `maxVisibleCandles`     | `number`             | `50`                      | Zoom-out limit                                     |
+| `minVisibleCandles`     | `number`             | `10`                      | Zoom-in limit                                      |
 
 ### Gesture Controls
 
 | Fingers | Gesture | Action                                     |
-| ------- | ------- | -------------------------------------------- |
-| 1       | Pan     | Crosshair — snaps to nearest candle center   |
-| 2       | Pinch   | Zoom in/out around focal point                |
-| 3       | Pan     | Scroll left/right through history             |
+| ------- | ------- | ------------------------------------------ |
+| 1       | Pan     | Crosshair — snaps to nearest candle center |
+| 2       | Pinch   | Zoom in/out around focal point             |
+| 3       | Pan     | Scroll left/right through history          |
 
 ### Layout
 
