@@ -20,7 +20,14 @@ import {
   useDerivedValue,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { DenseHeatMapDataPoint, GridValue, HeatMapData, HeatMapProps, SparseHeatMapDataPoint } from "./types";
+import {
+  DenseHeatMapDataPoint,
+  GridValue,
+  HeatMapData,
+  HeatMapProps,
+  SparseHeatMapDataPoint,
+} from "./types";
+import { max } from "../math/array/minMax";
 
 // ---------------------------------------------------------------------------
 // Color interpolation helpers
@@ -61,12 +68,13 @@ function lerpColor(from: string, to: string, t: number): string {
 // Returns initialColor when value = 0 and finalColor when value = max.
 function valueToColor(
   value: number,
-  maxValue: number,
+  maxValue: number | undefined,
   initialColor: string,
   finalColor: string,
   colorSteps: number,
 ): string {
-  if (maxValue === 0 || value <= 0) return initialColor;
+  if (maxValue === 0 || maxValue === undefined || value <= 0)
+    return initialColor;
   // clamp t to [0, 1], then snap to the nearest discrete step
   const t = Math.min(value / maxValue, 1);
   const snapped = Math.round(t * (colorSteps - 1)) / (colorSteps - 1);
@@ -79,15 +87,8 @@ function isSparse(data: HeatMapData): data is SparseHeatMapDataPoint[] {
   return data.length > 0 && "r" in data[0];
 }
 
-// TODO : REPLACE WITH SELF MAX/MIN
-// Plain min/max scan, replaces d3-array's `max` — rn-cute-charts doesn't
-// depend on d3 for anything else, no reason to pull it in for one reduction.
-function maxValueOf(data: HeatMapData): number {
-  let m = 0;
-  for (const d of data) {
-    if (d.value > m) m = d.value;
-  }
-  return m;
+function maxValueOf(data: HeatMapData): number | undefined {
+  return max(data, (d) => d.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +113,7 @@ const HeatMap = ({
   cellWidth: cellWidthProp,
   xLabelHeight = 0,
   overlayContent,
-  bufferedCols=10,
+  bufferedCols = 10,
   jsThrottleMs = 150,
 }: HeatMapProps): React.ReactElement => {
   // ---------------------------------------------------------------------------
@@ -127,10 +128,8 @@ const HeatMap = ({
   // cells, so this is only a meaningful default for dense
   // sparse users should generally pass columns explicitly. We still derive something
   // sane (max col seen + 1) so it doesn't blow up if they don't.
-  const derivedCols = isSparse(data)
-    ? //TODO : use my own maths here too
-      Math.max(0, ...data.map((d) => d.c)) + 1
-    : Math.ceil(dataLen / rows);
+  const maxCol = isSparse(data) ? (max(data, (d) => d.c) ?? -1) : -1;
+  const derivedCols = isSparse(data) ? maxCol + 1 : Math.ceil(dataLen / rows);
   const totalCols =
     columns !== undefined ? Math.min(columns, derivedCols) : derivedCols;
 
@@ -188,7 +187,6 @@ const HeatMap = ({
   // ---------------------------------------------------------------------------
   // Data cache — recompute max only when `data` reference changes.
 
-  // TODO:  our own max here
   const maxValue = useMemo(() => maxValueOf(data), [data]);
 
   // Sparse lookup: row,col -> value. Built once per `data` change
