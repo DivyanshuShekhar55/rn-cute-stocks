@@ -12,8 +12,10 @@ A high-performance, delightful charting library for React Native built on Skia a
 - **Horizontal Bar Chart**: Tap-interactive horizontal bar charts with optional vertical scroll
 - **Line Chart**: Smooth, gesture-driven line charts for generic labeled data
 - **Time Series Chart**: Gesture-driven line charts for timestamp-based financial/time data
-- **Candlestick Chart**: Interactive OHLC candlestick charts with pinch zoom and pan
 - **Pie Chart**: Tap-interactive pie charts with animated slice highlight
+- **HeatMap**: Interactive heatmaps for dense and sparse type data with optional scrolling and cell selection
+- **CalendarHeatMap**: GitHub-style contribution heatmaps for date-based activity with cell selection
+- **Candlestick Chart**: Interactive OHLC candlestick charts with pinch zoom and pan
 
 ## Installation
 
@@ -389,6 +391,181 @@ export default function App() {
 | `labelFontColor`   | `string`         | `"#fff"`     | Text color of the tap label bubble                                |
 
 ---
+
+## Heat Map
+
+### Features
+
+- Renders both **dense** (fill-in-order) and **sparse** (`{r, c, value}`) data — auto-detected from your data shape
+- Optional horizontal scroll with column virtualisation, for grids too wide to fit on screen (e.g. calendar-style heatmaps)
+- Tap a cell to get its value, index, and grid position back
+- Cell colours interpolate between two configurable endpoints across N discrete steps
+
+<p align="center">
+  <img src="./assests/images/heatmap_one.jpeg" width=380 height=240 />
+  <img src="./assests/images/heatmap_two.jpeg" width=380 height=240 />
+</p>
+
+### A note on labels
+
+`HeatMap` deliberately renders **only cells** — no axis labels, no legend, nothing else. This isn't a missing feature, it's intentional: different heatmaps need wildly different labelling schemes (a label every Nth column, repeating weekday labels, a label only where a new month starts, no labels at all), and there's no single default that fits all of them. Rather than guess, `HeatMap` exposes an `overlayContent` prop — a function that receives the exact layout numbers (`cellWidth`, `colGap`, `totalCols`, etc.) it used to place its own cells, so you can draw whatever labels make sense for your data, and they'll scroll in perfect sync with the grid since they render inside the same transformed group as the cells. See `CalendarHeatmap` below for a real example (month labels drawn via `overlayContent`, weekday labels drawn as plain fixed text alongside it).
+
+### Quick Start
+
+```tsx
+import { HeatMap } from "rn-cute-charts";
+import type { DenseHeatMapDataPoint } from "rn-cute-charts";
+
+const data: DenseHeatMapDataPoint[] = [
+  { value: 0 },
+  { value: 12 },
+  { value: 4 },
+  { value: 1 },
+  { value: 7 },
+];
+
+export default function App() {
+  return (
+    <HeatMap
+      width={300}
+      height={300}
+      data={data}
+      rows={5}
+      onPress={(item, index, row, col) => console.log(item, row, col)}
+    />
+  );
+}
+```
+
+Sparse data — only specify the cells you have values for, everything else renders as `emptyColor`:
+
+```tsx
+import type { SparseHeatMapDataPoint } from "rn-cute-charts";
+
+const data: SparseHeatMapDataPoint[] = [
+  { r: 0, c: 0, value: 4 },
+  { r: 2, c: 5, value: 12 },
+  { r: 1, c: 9, value: 1 },
+];
+
+<HeatMap
+  width={300}
+  height={150}
+  data={data}
+  rows={3}
+  columns={10}
+  onPress={() => {}}
+/>;
+```
+
+Scrollable, with your own overlay labels:
+
+```tsx
+import { Text as SkiaText } from "@shopify/react-native-skia";
+
+<HeatMap
+  width={300}
+  height={200}
+  data={data}
+  rows={5}
+  scrollable
+  cellWidth={20}
+  xLabelHeight={0.15}
+  overlayContent={({ cellWidth, colGap, totalCols }) =>
+    Array.from({ length: totalCols }, (_, col) => (
+      <SkiaText
+        key={col}
+        x={colGap + col * (cellWidth + colGap)}
+        y={10}
+        text={`Week ${col + 1}`}
+        font={myFont}
+        color="#666"
+      />
+    ))
+  }
+  onPress={() => {}}
+/>;
+```
+
+### API Reference
+
+| Prop              | Type                                                  | Default         | Description                                                                                                                |
+| ----------------- | ----------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `width`           | `number`                                              | **required**    | Chart width                                                                                                                |
+| `height`          | `number`                                              | **required**    | Chart height                                                                                                               |
+| `data`            | `DenseHeatMapDataPoint[] \| SparseHeatMapDataPoint[]` | **required**    | Dense (`{value}`, filled in order) or sparse (`{r, c, value}`) — auto-detected                                             |
+| `rows`            | `number`                                              | **required**    | Number of rows in the grid                                                                                                 |
+| `onPress`         | `(item, index, row, col) => void`                     | **required**    | Called on tap. For sparse data with no entry at the tapped cell, not called at all                                         |
+| `columns`         | `number`                                              | auto-derived    | Hard cap on columns. Auto-calculated from data/rows if omitted                                                             |
+| `scrollable`      | `boolean`                                             | `false`         | Enable horizontal scroll when columns don't fit `width`                                                                    |
+| `cellWidth`       | `number`                                              | auto-fit        | Fixed cell width. **Required when `scrollable=true`** — no auto-fit once content can overflow                              |
+| `emptyColor`      | `string`                                              | `"#f3f4f6"`     | Colour for cells with no data                                                                                              |
+| `initialColor`    | `string`                                              | `"#e8d5f5"`     | Colour for value = 0                                                                                                       |
+| `finalColor`      | `string`                                              | `"#6b21a8"`     | Colour for the maximum value in the data                                                                                   |
+| `colorSteps`      | `number`                                              | `4`             | Number of discrete colour steps between `initialColor` and `finalColor`                                                    |
+| `backgroundColor` | `string`                                              | `"transparent"` | Canvas background colour                                                                                                   |
+| `rowGap`          | `number`                                              | `4`             | Gap in px between rows                                                                                                     |
+| `colGap`          | `number`                                              | `4`             | Gap in px between columns                                                                                                  |
+| `roundedness`     | `number`                                              | `4`             | Cell corner radius                                                                                                         |
+| `xLabelHeight`    | `number`                                              | `0`             | Fraction of `height` reserved at the top for `overlayContent` (e.g. `0.1` = top 10%)                                       |
+| `overlayContent`  | `(layout) => ReactNode`                               | —               | Draw extra Skia content (e.g. labels) that scrolls in sync with the grid — see above                                       |
+| `bufferedCols`    | `number`                                              | `4`             | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
+| `jsThrottleMs`    | `number`                                              | `100`           | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
+
+
+> ⚠️ **`jsThrottleMs` warning:** lowering this too far increases how often React state updates fire during scroll/pan. Too low a value (e.g. under ~30–40ms) can flood the JS thread and crash or freeze the app on lower-end devices. Raise it, don't lower it, if you run into performance issues.
+
+---
+
+## Calendar Heatmap
+
+A GitHub-style contribution graph, built as a thin wrapper on top of `HeatMap` — it transforms `{date, value}` data into `HeatMap`'s sparse format, computes month/weekday label positions, and always renders scrollable (a year of days never fits one screen).
+
+<p align="center">
+  <img src="./assests/images/calendar_heatmap_main.jpeg" width=400 height=250 />
+</p>
+
+### Quick Start
+
+```tsx
+import { CalendarHeatmap } from "rn-cute-charts";
+import type { CalendarDataPoint } from "rn-cute-charts";
+
+const data: CalendarDataPoint[] = [
+  { date: new Date(2026, 0, 1), value: 3 },
+  { date: new Date(2026, 0, 2), value: 0 },
+  // ...
+];
+
+export default function App() {
+  return (
+    <CalendarHeatmap
+      width={350}
+      height={140}
+      data={data}
+      onPress={(date, value) => console.log(date, value)}
+    />
+  );
+}
+```
+
+### API Reference
+
+| Prop                                                                                                                  | Type                                               | Default                           | Description                                                                                                                |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `width`                                                                                                               | `number`                                           | **required**                      | Chart width                                                                                                                |
+| `height`                                                                                                              | `number`                                           | **required**                      | Chart height                                                                                                               |
+| `data`                                                                                                                | `CalendarDataPoint[]`                              | **required**                      | Array of `{ date: Date, value: number }`                                                                                   |
+| `startDate`                                                                                                           | `Date`                                             | Jan 1 of current year             | Range rendered is always exactly one year forward from this date                                                           |
+| `cellWidth`                                                                                                           | `number`                                           | `12`                              | Width of each day cell in px                                                                                               |
+| `onPress`                                                                                                             | `(date: Date, value: number \| undefined) => void` | —                                 | Called on tap with the real calendar `Date`, not row/col                                                                   |
+| `showLabels`                                                                                                          | `boolean`                                          | `true`                            | Controls both weekday labels (Mon/Wed/Fri) and month labels                                                                |
+| `labelStyle`                                                                                                          | `{ fontSize: number, color: string }`              | `{ fontSize: 10, color: "#666" }` | Font styling for both label types                                                                                          |
+| `emptyColor` / `initialColor` / `finalColor` / `colorSteps` / `backgroundColor` / `rowGap` / `colGap` / `roundedness` | —                                                  | see `HeatMap`                     | Forwarded straight through to the underlying `HeatMap`                                                                     |
+| `bufferedCols`                                                                                                        | `number`                                           | `4`                               | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
+| `jsThrottleMs`                                                                                                        | `number`                                           | `100`                             | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
+
+> Week starts on **Sunday**, matching GitHub's own contribution graph convention.
 
 ## Candlestick Chart
 
