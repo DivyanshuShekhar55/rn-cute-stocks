@@ -1,14 +1,13 @@
 /**
  * Allow data to be rendered in a cell-by-cell fashion (column major format).
  * No need to pass in `( row, col )` coordinate.
- *
  */
 export type DenseHeatMapDataPoint = {
   value: number;
 };
 
 /**
- * Explicitly provide the value and cell coordinate to render the heatmap.
+ * Explicitly provide the value and cell coordinate (row, col) to render the heatmap.
  */
 export type SparseHeatMapDataPoint = {
   r: number;
@@ -17,7 +16,7 @@ export type SparseHeatMapDataPoint = {
 };
 
 /**
- * The HeatMapData chooses one of the `DenseHeatMapDataPoint[]` or `DenseHeatMapDataPoint[]` for data type.
+ * The HeatMapData chooses one of the `DenseHeatMapDataPoint[]` or `SparseHeatMapDataPoint[]` for data type.
  * Auto decision made by looking at the first data point.
  */
 export type HeatMapData = DenseHeatMapDataPoint[] | SparseHeatMapDataPoint[];
@@ -28,7 +27,6 @@ export type HeatMapData = DenseHeatMapDataPoint[] | SparseHeatMapDataPoint[];
  * x, y -> Skia's canvas coordinate of the Rect.
  *
  * row, col -> the row and column to which the cell belongs.
- * TODO : are these absolue positions or logical (ie based on current viewport)
  */
 export type GridValue = {
   cellColor: string;
@@ -41,27 +39,36 @@ export type GridValue = {
 
 // TODO :
 // check for numerical data inconsistencies
-// allow users to have gaps between labels like gap=2 will render labels at gap of 2 cells
-// labels aren't necessary at all, can have just painted cells
+
+/**
+ * @param width width of the screen to draw cells and label
+ * @param height height of the cell-grid view
+ * @param data data points used to render cells (of type `HeatMapData`)
+ * @param rows number of rows of cells in grid
+ * @param onPress callback function when a cell is tapped
+ *  `onPress: ( item: SparseHeatMapDataPoint | DenseHeatMapDataPoint, index: number, row: number, col: number) => void;`
+ * @param scrollable (optional) if cells do not fit in current viewport, to provide scroll or not
+ * @param cellWidth (optional) minimum width of cells. Required when `scrollable = true`
+ * @param columns (optional) number of columns in the grid. Auto calculated if undefined
+ * @param emptyColor (optional) color of cell if value is undefined / missing
+ * @param initialColor (optional) color for value of cell = 0
+ * @param finalColor (optional) color shown for maximum value in the cells
+ * @param colorSteps (optional) number of divisions to split initial to final color range
+ * @param backgroundColor (optional) background color of the grid view
+ * @param rowGap (optional) gap (in px) between two consecutive rows
+ * @param colGap (optional) gap (in px) between two consecutive columns
+ * @param roundedness (optional) border radius of cells
+ * @param xLabelHeight (optional) fraction of grid's height to be used for x labels
+ * @param overlayContent (optional) for callers of HeatMap component that need to draw extra skia components along side the cells (like labels)
+ * @param bufferedCols (optional) number of columns buffered on both side of current visible window (if scrollable), to avoid flickering entry of new columns
+ * @param jsThrottleMs (optional) time in ms after which to update the js thread states during scrolls
+ */
+
 export interface HeatMapProps {
   width: number;
   height: number;
   data: HeatMapData;
   rows: number;
-
-  columns?: number; // Calculated automatically, provided only if user wants to put a hard cap on upper limit
-
-  emptyColor?: string; // Color for completely missing slots, default = #f3f4f6
-  initialColor?: string; // Freq = 0, default = #e8d5f5
-  finalColor?: string; // Freq = Max, default = #6b21a8
-  colorSteps?: number; // number of divisions from init to final color default=4
-  backgroundColor?: string; // default = transparent
-
-  rowGap?: number; // default=4px
-  colGap?: number; // default=8px
-  roundedness?: number; // default = 4px
-
-  // TODO: cellType?: "rect" | "circle" | "path";  TODO : for later
 
   // when app user presses a box what happens is upto the library user
   // all we do is provide the data and the index on datum (in the data array) along with (row, col) in the grid
@@ -81,6 +88,20 @@ export interface HeatMapProps {
   // arbitrary cell width would not look "cute". Something I believe user must specify.
   // Required when scrollable=true — with columns able to exceed the viewport
   cellWidth?: number;
+
+  columns?: number; // Calculated automatically, provided only if user wants to put a hard cap on upper limit
+
+  emptyColor?: string; // Color for completely missing slots, default = #f3f4f6
+  initialColor?: string; // Freq = 0, default = #e8d5f5
+  finalColor?: string; // Freq = Max, default = #6b21a8
+  colorSteps?: number; // number of divisions from init to final color default=4
+  backgroundColor?: string; // default = transparent
+
+  rowGap?: number; // default=4px
+  colGap?: number; // default=8px
+  roundedness?: number; // default = 4px
+
+  // TODO: cellType?: "rect" | "circle" | "path";  TODO : for later
 
   // Fraction of height reserved at the TOP of the canvas for label content
   // needs to scroll with the grid — same convention as VerticalBarChart's xAxisHeight/yAxisWidth
@@ -107,6 +128,6 @@ export interface HeatMapProps {
 
   // number of columns to buffer on either side of current grid window
   // helps avoid flickering presentation of cells as user scrolls
-  bufferedCols?: number 
+  bufferedCols?: number;
   jsThrottleMs?: number;
 }

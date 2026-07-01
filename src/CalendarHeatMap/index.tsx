@@ -82,6 +82,7 @@ const CalendarHeatMap = ({
   width,
   height,
   data,
+  onPress,
   startDate: startDateProp,
   cellWidth = 12,
   emptyColor,
@@ -94,7 +95,8 @@ const CalendarHeatMap = ({
   roundedness,
   showLabels = true,
   labelStyle = DEFAULT_LABEL_STYLE,
-  onPress,
+  bufferedCols = 10, // overwriting the defaults of heatmap (looked cooler on device)
+  jsThrottleMs = 150,
 }: CalendarHeatMapProps): React.ReactElement => {
   // Default startDate = Jan 1 of current year.
   // Recomputing `new Date()` fresh on every render would be wrong here
@@ -295,6 +297,8 @@ const CalendarHeatMap = ({
           roundedness={roundedness}
           overlayContent={renderMonthLabels}
           onPress={handleHeatMapPress}
+          bufferedCols={bufferedCols}
+          jsThrottleMs={jsThrottleMs}
         />
       </View>
     </View>
