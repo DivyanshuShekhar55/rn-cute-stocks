@@ -8,12 +8,12 @@ import { PieDataPoint, PieProps } from "./types";
 const PieChart = ({
   width,
   height,
-  data ,
+  data,
   donut = false,
   innerRadiusRatio = 0.9,
   labelBgColor = "#333",
   labelFontColor = "#fff",
-  activeSlicePop =1.07,
+  activeSlicePop = 1.07,
 }: PieProps): React.ReactElement => {
   // show label above the selected region on the chart
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -86,7 +86,7 @@ const PieChart = ({
       // if already selected, tapping again would un-select it
       setActiveIndex(activeIndex === tappedIndex ? null : tappedIndex);
 
-      console.log(tappedIndex)
+      console.log(tappedIndex);
     });
 
   // For the label bubble: compute the centroid (visual centre) of the active slice

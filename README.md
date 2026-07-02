@@ -8,14 +8,14 @@ A high-performance, delightful charting library for React Native built on Skia a
 
 ## Charts Available
 
-- **Vertical Bar Chart**: Tap-interactive vertical bar charts with optional horizontal scroll
-- **Horizontal Bar Chart**: Tap-interactive horizontal bar charts with optional vertical scroll
-- **Line Chart**: Smooth, gesture-driven line charts for generic labeled data
-- **Time Series Chart**: Gesture-driven line charts for timestamp-based financial/time data
-- **Pie Chart**: Tap-interactive pie charts with animated slice highlight
-- **HeatMap**: Interactive heatmaps for dense and sparse type data with optional scrolling and cell selection
-- **CalendarHeatMap**: GitHub-style contribution heatmaps for date-based activity with cell selection
-- **Candlestick Chart**: Interactive OHLC candlestick charts with pinch zoom and pan
+- **[Vertical Bar Chart](#vertical-bar-chart)**: Tap-interactive vertical bar charts with optional horizontal scroll
+- **[Horizontal Bar Chart](#horizontal-bar-chart)**: Tap-interactive horizontal bar charts with optional vertical scroll
+- **[Line Chart](#line-chart)**: Smooth, gesture-driven line charts for generic labeled data
+- **[Time Series Chart](#time-series-chart)**: Gesture-driven line charts for timestamp-based financial/time data
+- **[Pie + Donut Chart](#pie-chart)**: Tap-interactive pie charts with animated slice highlight
+- **[HeatMap](#heat-map)**: Interactive heatmaps for dense and sparse type data with optional scrolling and cell selection
+- **[CalendarHeatMap](#calendar-heatmap)**: GitHub-style contribution heatmaps for date-based activity with cell selection
+- **[Candlestick Chart](#candlestick-chart)**: Interactive OHLC candlestick charts with pinch zoom and pan
 
 ## Installation
 
@@ -311,7 +311,7 @@ export default function App() {
 | `ySearch`              | `SearchAlgorithm`                      | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan                            |
 | `valuePrefix`          | `string`                               | `""`                              | Any Prefix to attach to numeric value text               |
 
-> Same bad-data behaviour as Line Chart: the price label shows **`"-"`** and the cursor freezes on unresolvable points, rather than guessing or showing wrong data.
+> Same bad-data behaviour as Line Chart: the label shows **`"-"`** and the cursor freezes on unresolvable points, rather than guessing or showing wrong data.
 
 ### Line vs Time Series — which to use?
 
