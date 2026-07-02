@@ -19,6 +19,7 @@ export type CalenderDataPoint = {
  * @param rowGap (optional) gap (in px) between two consecutive rows
  * @param colGap (optional) gap (in px) between two consecutive columns
  * @param roundedness (optional) border radius of cells
+ * @param dayLabels (optional) an array to define what day labels to show on left of grid (0=Sunday)
  * @param showLabels (optional) to show the day and month labels or not
  * @param labelStyle (optional) font size and color for the labels
  */
@@ -52,6 +53,7 @@ export interface CalendarHeatMapProps {
 
   roundedness?: number;
 
+  dayLabels?:number[]
   showLabels?: boolean; // controls BOTH weekday labels and month labels
 
   labelStyle?: { fontSize: number; color: string };

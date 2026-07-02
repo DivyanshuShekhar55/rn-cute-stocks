@@ -564,6 +564,7 @@ export default function App() {
 | `emptyColor` / `initialColor` / `finalColor` / `colorSteps` / `backgroundColor` / `rowGap` / `colGap` / `roundedness` | —                                                  | see `HeatMap`                     | Forwarded straight through to the underlying `HeatMap`                                                                     |
 | `bufferedCols`                                                                                                        | `number`                                           | `4`                               | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
 | `jsThrottleMs`                                                                                                        | `number`                                           | `100`                             | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
+| `dayLabels` | `number[]`  | `[1, 3, 5]` | Days to render on left of grid (0=Sunday) |
 
 > Week starts on **Sunday**, matching GitHub's own contribution graph convention.
 

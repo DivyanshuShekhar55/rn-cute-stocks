@@ -69,10 +69,6 @@ const MONTH_NAMES = [
   "Dec",
 ];
 
-// Only these weekday rows get a label drawn
-// matches GitHub's own graph and avoids 7 cramped labels down the left edge.
-const LABELLED_ROWS = new Set([1, 3, 5]); // Mon, Wed, Fri (row 0 = Sun)
-
 const DEFAULT_LABEL_STYLE = { fontSize: 10, color: "#666" };
 
 // Skia font object
@@ -93,11 +89,19 @@ const CalendarHeatMap = ({
   rowGap,
   colGap = 3,
   roundedness,
+  dayLabels = [1, 3, 5], // Mon, Wed, Fri (row 0 = Sun)
   showLabels = true,
   labelStyle = DEFAULT_LABEL_STYLE,
   bufferedCols = 10, // overwriting the defaults of heatmap (looked cooler on device)
   jsThrottleMs = 150,
 }: CalendarHeatMapProps): React.ReactElement => {
+  // We will only show days that are marked in dayLabels.
+  // Only these weekday rows get a label drawn
+  // matches GitHub's own graph and avoids 7 cramped labels down the left edge.
+  const LABELLED_ROWS = useMemo(() => {
+    return new Set(dayLabels);
+  }, [dayLabels]);
+
   // Default startDate = Jan 1 of current year.
   // Recomputing `new Date()` fresh on every render would be wrong here
   const startDate = useMemo(() => {
@@ -254,7 +258,7 @@ const CalendarHeatMap = ({
 
   return (
     <View style={{ width, height }}>
-      <View style={{ flexDirection: "row", height }}>
+      <View style={{ flexDirection: "row", height, backgroundColor:backgroundColor }}>
         {showLabels && (
           <View style={{ width: dayLabelWidth, height }}>
             {[0, 1, 2, 3, 4, 5, 6].map((row) =>
@@ -263,11 +267,14 @@ const CalendarHeatMap = ({
                   key={row}
                   style={{
                     position: "absolute",
-                    // + labelAreaHeight to match the same top offset
-                    // HeatMap itself reserves for month labels (xLabelHeight)
-                    // — keeps weekday labels aligned with their actual rows
-                    top: labelAreaHeight + row * heatMapRowHeight,
+                    // center the label within its row: start at row's top, then push
+                    // down by half the leftover space (row height minus text height)
+                    top:
+                      labelAreaHeight +
+                      row * heatMapRowHeight +
+                      (heatMapRowHeight - labelStyle.fontSize) / 2,
                     fontSize: labelStyle.fontSize,
+                    fontFamily, // match the Skia month-label font family for visual consistency
                     color: labelStyle.color,
                   }}
                 >
