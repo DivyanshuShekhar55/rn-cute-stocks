@@ -13,6 +13,7 @@ const PieChart = ({
   innerRadiusRatio = 0.9,
   labelBgColor = "#333",
   labelFontColor = "#fff",
+  activeSlicePop =1.07,
 }: PieProps): React.ReactElement => {
   // show label above the selected region on the chart
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -44,7 +45,7 @@ const PieChart = ({
   // Active slice gets a slightly larger radius to pop out on tap
   const activeArcGenerator = arc<(typeof arcs)[number]>()
     .innerRadius(innerRadius)
-    .outerRadius(outerRadius * 1.07);
+    .outerRadius(outerRadius * activeSlicePop);
 
   // Tap gesture: determine which slice was tapped via angle lookup
   const tap = Gesture.Tap()

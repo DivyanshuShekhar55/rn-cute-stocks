@@ -389,6 +389,7 @@ export default function App() {
 | `innerRadiusRatio` | `number`         | `0.6`        | Inner hole size as ratio of outer radius (only when `donut=true`) |
 | `labelBgColor`     | `string`         | `"#333"`     | Background color of the tap label bubble                          |
 | `labelFontColor`   | `string`         | `"#fff"`     | Text color of the tap label bubble                                |
+| `activeSlicePop`   | `number`         | `1.07`       | Factor by which outer radius 'pops' outs when selected            |
 
 ---
 
@@ -402,7 +403,7 @@ export default function App() {
 - Cell colours interpolate between two configurable endpoints across N discrete steps
 
 <p align="center">
-  <img src="./assests/images/heatmap_one.jpeg" width=380 height=240 />
+  <img src="./assests/images/heatmap_one.jpeg" width=380 height=230 />
   <img src="./assests/images/heatmap_two.jpeg" width=380 height=240 />
 </p>
 
@@ -511,7 +512,6 @@ import { Text as SkiaText } from "@shopify/react-native-skia";
 | `overlayContent`  | `(layout) => ReactNode`                               | —               | Draw extra Skia content (e.g. labels) that scrolls in sync with the grid — see above                                       |
 | `bufferedCols`    | `number`                                              | `4`             | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
 | `jsThrottleMs`    | `number`                                              | `100`           | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
-
 
 > ⚠️ **`jsThrottleMs` warning:** lowering this too far increases how often React state updates fire during scroll/pan. Too low a value (e.g. under ~30–40ms) can flood the JS thread and crash or freeze the app on lower-end devices. Raise it, don't lower it, if you run into performance issues.
 
