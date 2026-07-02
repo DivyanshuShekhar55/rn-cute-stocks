@@ -300,7 +300,7 @@ const HeatMap = ({
       for (let col = firstVisibleCol; col < lastVisibleCol; col++) {
         for (let row = 0; row < rows; row++) {
           // if cell isn't valid skip adding it at all
-          if (validateCell && validateCell(col, row) === false) continue;
+          if (validateCell && validateCell(row, col) === false) continue;
 
           // for example if we have row=4, col=3
           // take 3 columns full and multiply by number of rows in each column
@@ -321,7 +321,7 @@ const HeatMap = ({
     for (let col = firstVisibleCol; col < lastVisibleCol; col++) {
       for (let row = 0; row < rows; row++) {
         // if cell isn't valid skip adding it at all
-        if (validateCell && validateCell(col, row) === false) continue;
+        if (validateCell && validateCell(row, col) === false) continue;
 
         const index = col * rows + row;
 
