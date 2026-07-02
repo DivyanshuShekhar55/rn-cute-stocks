@@ -510,6 +510,7 @@ import { Text as SkiaText } from "@shopify/react-native-skia";
 | `roundedness`     | `number`                                              | `4`             | Cell corner radius                                                                                                         |
 | `xLabelHeight`    | `number`                                              | `0`             | Fraction of `height` reserved at the top for `overlayContent` (e.g. `0.1` = top 10%)                                       |
 | `overlayContent`  | `(layout) => ReactNode`                               | —               | Draw extra Skia content (e.g. labels) that scrolls in sync with the grid — see above                                       |
+| `validateCell`    | `(row: number, col: number) => boolean`                                    | —                 | Return `false` to skip rendering a cell entirely (not even as `emptyColor`) — e.g. partial weeks at a calendar's year boundary |
 | `bufferedCols`    | `number`                                              | `4`             | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
 | `jsThrottleMs`    | `number`                                              | `100`           | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
 
