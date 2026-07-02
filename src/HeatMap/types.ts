@@ -126,6 +126,8 @@ export interface HeatMapProps {
     rows: number;
   }) => React.ReactNode;
 
+  validateCell? : (row:number, col:number)=>boolean
+
   // number of columns to buffer on either side of current grid window
   // helps avoid flickering presentation of cells as user scrolls
   bufferedCols?: number;

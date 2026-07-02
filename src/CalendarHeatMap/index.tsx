@@ -156,6 +156,16 @@ const CalendarHeatMap = ({
     [labelStyle.fontSize],
   );
 
+  // remove the days before start date and after end date
+  // no need to render empty cells, just skip them completely
+  const isValidCell = (row: number, col: number) => {
+    // only the first and last columns can ever be partial — every column in
+    // between is a full Sun–Sat week, guaranteed inside range
+    if (col > 0 && col < totalCols - 1) return true;
+    const date = cellToDate(row, col, startDate);
+    return date >= startDate && date < endDate;
+  };
+
   // Month Label
   // exact same as github - mark the month label where the full week belongs to the same month
   // for example if June starts on wednesday (mid of week) then we don't mark that week as June
@@ -258,7 +268,13 @@ const CalendarHeatMap = ({
 
   return (
     <View style={{ width, height }}>
-      <View style={{ flexDirection: "row", height, backgroundColor:backgroundColor }}>
+      <View
+        style={{
+          flexDirection: "row",
+          height,
+          backgroundColor: backgroundColor,
+        }}
+      >
         {showLabels && (
           <View style={{ width: dayLabelWidth, height }}>
             {[0, 1, 2, 3, 4, 5, 6].map((row) =>
@@ -304,6 +320,7 @@ const CalendarHeatMap = ({
           roundedness={roundedness}
           overlayContent={renderMonthLabels}
           onPress={handleHeatMapPress}
+          validateCell={isValidCell}
           bufferedCols={bufferedCols}
           jsThrottleMs={jsThrottleMs}
         />

@@ -101,6 +101,7 @@ const HeatMap = ({
   rows,
   onPress,
   columns,
+  overlayContent,
   emptyColor = "#f3f4f6",
   initialColor = "#e8d5f5",
   finalColor = "#6b21a8",
@@ -112,7 +113,7 @@ const HeatMap = ({
   scrollable = false,
   cellWidth: cellWidthProp,
   xLabelHeight = 0,
-  overlayContent,
+  validateCell,
   bufferedCols = 10,
   jsThrottleMs = 150,
 }: HeatMapProps): React.ReactElement => {
@@ -298,6 +299,9 @@ const HeatMap = ({
     if (isSparse(data) && sparseMap) {
       for (let col = firstVisibleCol; col < lastVisibleCol; col++) {
         for (let row = 0; row < rows; row++) {
+          // if cell isn't valid skip adding it at all
+          if (validateCell && validateCell(col, row) === false) continue;
+
           // for example if we have row=4, col=3
           // take 3 columns full and multiply by number of rows in each column
           // so 3*rows. Then add the row passed so it becomes : 3*rows + 4
@@ -316,6 +320,9 @@ const HeatMap = ({
     // Dense path
     for (let col = firstVisibleCol; col < lastVisibleCol; col++) {
       for (let row = 0; row < rows; row++) {
+        // if cell isn't valid skip adding it at all
+        if (validateCell && validateCell(col, row) === false) continue;
+
         const index = col * rows + row;
 
         const value =
