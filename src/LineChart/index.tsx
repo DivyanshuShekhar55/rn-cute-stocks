@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   Canvas,
   LinearGradient,
@@ -11,7 +11,7 @@ import { GenerateStringPath, GetYForX } from "../math/pathGenerators";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { LineChartProps } from "./types";
 import { CursorProps } from "../shared/types";
 
@@ -49,6 +49,7 @@ const LineChart = ({
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
+  // when curve is tapped, call the user's onTap callback
   const handleTap = (tapX: number, tapY: number): void => {
     const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
     const result = GetYForX(clampedX, pathConfig);

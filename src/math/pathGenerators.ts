@@ -9,18 +9,13 @@ import {
 
 import { max, min } from "./array/minMax";
 import { scaleLinear, scalePoint, scaleTime } from "./scale/index";
-import { CurveType, SearchAlgorithm, YForXResult } from "../shared/types";
+import { CurveType, YForXResult } from "../shared/types";
 import {
-  TimerSeriesPathConfig,
   TimeSeriesDataPoint,
   TimeSeriesPathResult,
 } from "../TimeSeriesChart/types";
 import { Candle } from "../CandleStickChart/types";
-import {
-  LineChartPathConfig,
-  LineChartPathResult,
-  LineDataPoint,
-} from "../LineChart/types";
+import { LineChartPathResult, LineDataPoint } from "../LineChart/types";
 
 function getCurve(curveType: CurveType) {
   let curve;
@@ -136,10 +131,6 @@ function GetYForX_TimeSeries(
   xPos: number,
   pathConfig: TimeSeriesPathResult,
 ): YForXResult | undefined {
-  // IDEA BEHIND THIS FUNC. :
-  // the curve is not linear so find two nearby points for the given X (timestamp)
-  // then assume them as a linear line and get Y via linear interpolation
-
   const { xFunc, yFunc, xRangeMin, xRangeMax, data } = pathConfig;
 
   // keep x within bounds by clamping it

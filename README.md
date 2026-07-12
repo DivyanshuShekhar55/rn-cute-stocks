@@ -239,7 +239,6 @@ export default function App() {
       chartData={data}
       colors={["#9672f8", "#ff7e5f"]}
       curveType="curveBasis"
-      valuePrefix="$"
     />
   );
 }
@@ -247,21 +246,32 @@ export default function App() {
 
 ### API Reference
 
-| Prop                   | Type                                   | Default        | Description                                      |
-| ---------------------- | -------------------------------------- | -------------- | ------------------------------------------------ |
-| `width`                | `number`                               | **required**   | Chart canvas width                               |
-| `height`               | `number`                               | **required**   | Chart canvas height                              |
-| `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`              |
-| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line               |
-| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)             |
-| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                |
-| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                          |
-| `valuePrefix`          | `string`                               | `""`           | Prefix for the displayed value e.g. `"$"`, `"€"` |
-| `valueTextStyles`      | `TextStyle`                            | `{}`           | Styles for the value label above the chart       |
-| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                   |
-| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                          |
+| Prop                   | Type                                   | Default        | Description                                                                          |
+| ---------------------- | -------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| `width`                | `number`                               | **required**   | Chart canvas width                                                                   |
+| `height`               | `number`                               | **required**   | Chart canvas height                                                                  |
+| `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`                                                  |
+| `onTap`                | `(info: LineTapInfo) => void`          | `undefined`    | Optional callback fired when the chart is tapped, with the nearest data point's info |
+| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line                                                   |
+| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)                                                 |
+| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                                                    |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                                                              |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                                                       |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                                                              |
 
-> If the cursor lands on a point that can't be resolved (bad/missing data), the value label shows **`"-"`** instead of a stale or incorrect number, and the cursor itself stops updating until it's back over valid data.
+> If the tapped position resolves to invalid or missing data, `onTap` is not called and the cursor does not update — the last valid tap position remains.
+
+### LineTypeInfo (callback params for onTap())
+
+| Field    | Type     | Description                                   |
+| -------- | -------- | --------------------------------------------- |
+| `tapX`   | `number` | Raw x pixel coordinate of the tap             |
+| `tapY`   | `number` | Raw y pixel coordinate of the tap             |
+| `dataX`  | `string` | Nearest data point's x label                  |
+| `dataY`  | `number` | Nearest data point's y value                  |
+| `pointX` | `number` | Snapped x pixel position of the nearest point |
+| `pointY` | `number` | Snapped y pixel position of the nearest point |
+| `index`  | `number` | Index of the nearest point in `chartData`     |
 
 ---
 
@@ -296,22 +306,32 @@ export default function App() {
 
 ### API Reference
 
-| Prop                   | Type                                   | Default                           | Description                                              |
-| ---------------------- | -------------------------------------- | --------------------------------- | -------------------------------------------------------- |
-| `width`                | `number`                               | **required**                      | Chart canvas width                                       |
-| `height`               | `number`                               | **required**                      | Chart canvas height                                      |
-| `chartData`            | `TimeSeriesDataPoint[]`                | **required**                      | Array of `{ x: number, y: number }` where `x` is Unix ms |
-| `colors`               | `string[]`                             | `["#000"]`                        | Gradient colors for the chart line                       |
-| `curveType`            | `CurveType`                            | `"curveBasis"`                    | Curve interpolation type                                 |
-| `curveStrokeWidth`     | `number`                               | `2`                               | Line stroke width                                        |
-| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`                        | Fill or stroke the path                                  |
-| `textStyles`           | `TextStyle`                            | `{}`                              | Styles for the label above the chart                     |
-| `chartContainerStyles` | `ViewStyle`                            | `{}`                              | Styles for the outer container                           |
-| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor                    | Custom cursor component                                  |
-| `ySearch`              | `SearchAlgorithm`                      | `"binarySearchWithInterpolation"` | Algorithm for Y lookup on pan                            |
-| `valuePrefix`          | `string`                               | `""`                              | Any Prefix to attach to numeric value text               |
+| Prop                   | Type                                   | Default        | Description                                                                          |
+| ---------------------- | -------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| `width`                | `number`                               | **required**   | Chart canvas width                                                                   |
+| `height`               | `number`                               | **required**   | Chart canvas height                                                                  |
+| `chartData`            | `TimeSeriesDataPoint[]`                | **required**   | Array of `{ x: number, y: number }` where `x` is Unix ms                             |
+| `onTap`                | `(info: TimeChartTapInfo) => void`     | `undefined`    | Optional callback fired when the chart is tapped, with the nearest data point's info |
+| `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line                                                   |
+| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type                                                             |
+| `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                                                    |
+| `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                                                              |
+| `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                                                       |
+| `cursorComponent`      | `(props: CursorProps) => ReactElement` | default cursor | Custom cursor component                                                              |
 
-> Same bad-data behaviour as Line Chart: the label shows **`"-"`** and the cursor freezes on unresolvable points, rather than guessing or showing wrong data.
+### TimeChartTapInfo (callback params for onTap())
+
+| Field    | Type     | Description                                   |
+| -------- | -------- | --------------------------------------------- |
+| `tapX`   | `number` | Raw x pixel coordinate of the tap             |
+| `tapY`   | `number` | Raw y pixel coordinate of the tap             |
+| `dataX`  | `number` | Nearest data point's timestamp (unix ms)      |
+| `dataY`  | `number` | Nearest data point's y value                  |
+| `pointX` | `number` | Snapped x pixel position of the nearest point |
+| `pointY` | `number` | Snapped y pixel position of the nearest point |
+| `index`  | `number` | Index of the nearest point in `chartData`     |
+
+> If the tapped position resolves to invalid or missing data, `onTap` is not called and the cursor does not update — the last valid tap position remains.
 
 ### Line vs Time Series — which to use?
 
@@ -320,7 +340,6 @@ export default function App() {
 | X-axis data   | Any string label             | Unix timestamp (ms)           |
 | Point spacing | Always equal                 | Proportional to time gap      |
 | Use case      | categories and custom labels | Stock prices, sensor readings |
-| X lookup      | O(1) direct index            | Binary search + interpolation |
 
 ### Curve Types (both line charts)
 
@@ -490,29 +509,29 @@ import { Text as SkiaText } from "@shopify/react-native-skia";
 
 ### API Reference
 
-| Prop              | Type                                                  | Default         | Description                                                                                                                |
-| ----------------- | ----------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `width`           | `number`                                              | **required**    | Chart width                                                                                                                |
-| `height`          | `number`                                              | **required**    | Chart height                                                                                                               |
-| `data`            | `DenseHeatMapDataPoint[] \| SparseHeatMapDataPoint[]` | **required**    | Dense (`{value}`, filled in order) or sparse (`{r, c, value}`) — auto-detected                                             |
-| `rows`            | `number`                                              | **required**    | Number of rows in the grid                                                                                                 |
-| `onPress`         | `(item, index, row, col) => void`                     | **required**    | Called on tap. For sparse data with no entry at the tapped cell, not called at all                                         |
-| `columns`         | `number`                                              | auto-derived    | Hard cap on columns. Auto-calculated from data/rows if omitted                                                             |
-| `scrollable`      | `boolean`                                             | `false`         | Enable horizontal scroll when columns don't fit `width`                                                                    |
-| `cellWidth`       | `number`                                              | auto-fit        | Fixed cell width. **Required when `scrollable=true`** — no auto-fit once content can overflow                              |
-| `emptyColor`      | `string`                                              | `"#f3f4f6"`     | Colour for cells with no data                                                                                              |
-| `initialColor`    | `string`                                              | `"#e8d5f5"`     | Colour for value = 0                                                                                                       |
-| `finalColor`      | `string`                                              | `"#6b21a8"`     | Colour for the maximum value in the data                                                                                   |
-| `colorSteps`      | `number`                                              | `4`             | Number of discrete colour steps between `initialColor` and `finalColor`                                                    |
-| `backgroundColor` | `string`                                              | `"transparent"` | Canvas background colour                                                                                                   |
-| `rowGap`          | `number`                                              | `4`             | Gap in px between rows                                                                                                     |
-| `colGap`          | `number`                                              | `4`             | Gap in px between columns                                                                                                  |
-| `roundedness`     | `number`                                              | `4`             | Cell corner radius                                                                                                         |
-| `xLabelHeight`    | `number`                                              | `0`             | Fraction of `height` reserved at the top for `overlayContent` (e.g. `0.1` = top 10%)                                       |
-| `overlayContent`  | `(layout) => ReactNode`                               | —               | Draw extra Skia content (e.g. labels) that scrolls in sync with the grid — see above                                       |
-| `validateCell`    | `(row: number, col: number) => boolean`                                    | —                 | Return `false` to skip rendering a cell entirely (not even as `emptyColor`) — e.g. partial weeks at a calendar's year boundary |
-| `bufferedCols`    | `number`                                              | `4`             | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
-| `jsThrottleMs`    | `number`                                              | `100`           | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
+| Prop              | Type                                                  | Default         | Description                                                                                                                    |
+| ----------------- | ----------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `width`           | `number`                                              | **required**    | Chart width                                                                                                                    |
+| `height`          | `number`                                              | **required**    | Chart height                                                                                                                   |
+| `data`            | `DenseHeatMapDataPoint[] \| SparseHeatMapDataPoint[]` | **required**    | Dense (`{value}`, filled in order) or sparse (`{r, c, value}`) — auto-detected                                                 |
+| `rows`            | `number`                                              | **required**    | Number of rows in the grid                                                                                                     |
+| `onPress`         | `(item, index, row, col) => void`                     | **required**    | Called on tap. For sparse data with no entry at the tapped cell, not called at all                                             |
+| `columns`         | `number`                                              | auto-derived    | Hard cap on columns. Auto-calculated from data/rows if omitted                                                                 |
+| `scrollable`      | `boolean`                                             | `false`         | Enable horizontal scroll when columns don't fit `width`                                                                        |
+| `cellWidth`       | `number`                                              | auto-fit        | Fixed cell width. **Required when `scrollable=true`** — no auto-fit once content can overflow                                  |
+| `emptyColor`      | `string`                                              | `"#f3f4f6"`     | Colour for cells with no data                                                                                                  |
+| `initialColor`    | `string`                                              | `"#e8d5f5"`     | Colour for value = 0                                                                                                           |
+| `finalColor`      | `string`                                              | `"#6b21a8"`     | Colour for the maximum value in the data                                                                                       |
+| `colorSteps`      | `number`                                              | `4`             | Number of discrete colour steps between `initialColor` and `finalColor`                                                        |
+| `backgroundColor` | `string`                                              | `"transparent"` | Canvas background colour                                                                                                       |
+| `rowGap`          | `number`                                              | `4`             | Gap in px between rows                                                                                                         |
+| `colGap`          | `number`                                              | `4`             | Gap in px between columns                                                                                                      |
+| `roundedness`     | `number`                                              | `4`             | Cell corner radius                                                                                                             |
+| `xLabelHeight`    | `number`                                              | `0`             | Fraction of `height` reserved at the top for `overlayContent` (e.g. `0.1` = top 10%)                                           |
+| `overlayContent`  | `(layout) => ReactNode`                               | —               | Draw extra Skia content (e.g. labels) that scrolls in sync with the grid — see above                                           |
+| `validateCell`    | `(row: number, col: number) => boolean`               | —               | Return `false` to skip rendering a cell entirely (not even as `emptyColor`) — e.g. partial weeks at a calendar's year boundary |
+| `bufferedCols`    | `number`                                              | `4`             | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                       |
+| `jsThrottleMs`    | `number`                                              | `100`           | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices     |
 
 > ⚠️ **`jsThrottleMs` warning:** lowering this too far increases how often React state updates fire during scroll/pan. Too low a value (e.g. under ~30–40ms) can flood the JS thread and crash or freeze the app on lower-end devices. Raise it, don't lower it, if you run into performance issues.
 
@@ -565,7 +584,7 @@ export default function App() {
 | `emptyColor` / `initialColor` / `finalColor` / `colorSteps` / `backgroundColor` / `rowGap` / `colGap` / `roundedness` | —                                                  | see `HeatMap`                     | Forwarded straight through to the underlying `HeatMap`                                                                     |
 | `bufferedCols`                                                                                                        | `number`                                           | `4`                               | Extra columns rendered on each side of the visible window, avoids pop-in while scrolling                                   |
 | `jsThrottleMs`                                                                                                        | `number`                                           | `100`                             | Throttle (ms) for JS-thread scroll-position sync. Raise if you see JS FPS drops during fast scrolling on lower-end devices |
-| `dayLabels` | `number[]`  | `[1, 3, 5]` | Days to render on left of grid (0=Sunday) |
+| `dayLabels`                                                                                                           | `number[]`                                         | `[1, 3, 5]`                       | Days to render on left of grid (0=Sunday)                                                                                  |
 
 > Week starts on **Sunday**, matching GitHub's own contribution graph convention.
 

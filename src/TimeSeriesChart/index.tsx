@@ -5,7 +5,7 @@
   The LineChart component is more technically documented and explained.
  */
 
-import { Text, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   Canvas,
   LinearGradient,
@@ -20,7 +20,7 @@ import {
 } from "../math/pathGenerators";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { TimeSeriesChartProps } from "./types";
 import { CursorProps } from "../shared/types";
 import { scheduleOnRN } from "react-native-worklets";
@@ -61,6 +61,7 @@ const TimeSeriesChart = ({
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
+  // when curve is tapped, call the user's onTap callback
   const handleTap = (tapX: number, tapY: number): void => {
     const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
     const result = GetYForX_TimeSeries(clampedX, pathConfig);
@@ -148,10 +149,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     backgroundColor: "transparent",
-  },
-  priceText: {
-    color: "#000",
-    fontSize: 52,
   },
 });
 
