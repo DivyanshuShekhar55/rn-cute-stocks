@@ -13,6 +13,7 @@ import { CurveType, SearchAlgorithm, YForXResult } from "../shared/types";
 import {
   TimerSeriesPathConfig,
   TimeSeriesDataPoint,
+  TimeSeriesPathResult,
 } from "../TimeSeriesChart/types";
 import { Candle } from "../CandleStickChart/types";
 import {
@@ -131,106 +132,60 @@ function GenerateStringPath_TimeSeries(
   };
 }
 
-// is used to cache
-let TIMESERIES_PATH_CONFIG: TimerSeriesPathConfig | null = null;
-
 function GetYForX_TimeSeries(
   xPos: number,
-  canvasWidth: number,
-  data: TimeSeriesDataPoint[],
-  canvasHeight: number,
-  ySearchAlgorithm: SearchAlgorithm,
+  pathConfig: TimeSeriesPathResult,
 ): YForXResult | undefined {
   // IDEA BEHIND THIS FUNC. :
   // the curve is not linear so find two nearby points for the given X (timestamp)
   // then assume them as a linear line and get Y via linear interpolation
-  // also cache the path configs
 
-  // if data, resolution changes updated the cached data
-  if (
-    !TIMESERIES_PATH_CONFIG ||
-    TIMESERIES_PATH_CONFIG.canvasWidth !== canvasWidth ||
-    TIMESERIES_PATH_CONFIG.canvasHeight !== canvasHeight ||
-    TIMESERIES_PATH_CONFIG.data.length !== data.length
-  ) {
-    TIMESERIES_PATH_CONFIG = {
-      ...GenerateStringPath_TimeSeries(
-        "curveBumpX",
-        data,
-        canvasWidth,
-        canvasHeight,
-      ),
-      canvasWidth: canvasWidth,
-      canvasHeight: canvasHeight,
-    };
-  }
-
-  const { xFunc, yFunc, xRangeMin, xRangeMax } = TIMESERIES_PATH_CONFIG;
+  const { xFunc, yFunc, xRangeMin, xRangeMax, data } = pathConfig;
 
   // keep x within bounds by clamping it
   let clampedXPos = Math.max(xRangeMin, Math.min(xRangeMax, xPos));
-
-  let res = searchStrategy_TimeSeries(
-    ySearchAlgorithm,
-    clampedXPos,
-    xFunc,
-    data,
-    yFunc,
-  );
+  let res = binarySearch_TimeSeries(clampedXPos, xFunc, data, yFunc);
 
   return res;
 }
 
-const searchStrategy_TimeSeries = (
-  searchStrategy: SearchAlgorithm,
-  clampedXPos: number,
-  xFunc: ReturnType<typeof scaleTime>,
-  data: TimeSeriesDataPoint[],
-  yFunc: ReturnType<typeof scaleLinear>,
-): YForXResult | undefined => {
-  switch (searchStrategy) {
-    case "binarySearchWithInterpolation":
-      return binarySearch_TimeSeries(clampedXPos, xFunc, data, yFunc);
-      break;
-
-    // TODO: might add more strategies later
-    // one might be using lookup tables
-    // as for less data points interpolation fails
-
-    default:
-      console.warn(
-        "invalid search strategy, falling back to binary with interpolation",
-      );
-      return binarySearch_TimeSeries(clampedXPos, xFunc, data, yFunc);
-      break;
-  }
-};
-
+// main idea: since scale is not linear
+// we find two nearest data points to clicked pixel coordinate using binary search
 const binarySearch_TimeSeries = (
   clampedXPos: number,
   xFunc: ReturnType<typeof scaleTime>,
   data: TimeSeriesDataPoint[],
   yFunc: ReturnType<typeof scaleLinear>,
 ): YForXResult | undefined => {
+  // invert takes in a number and returns the datetime
   let inverted = xFunc.invert(clampedXPos);
   if (inverted === undefined) return undefined;
-  let timestamp = inverted.getTime();
+  let timestamp = inverted.getTime(); // returns milliseconds date
 
-  let leftIdx = 0;
-
+  // edge case:1
+  // timestamp less than first value in data
+  // happens when click was left of starting point of graph
   if (timestamp <= data[0].x) {
     const p = data[0].y;
     const yCoord = yFunc(p);
-    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
+    const xCoord = xFunc(data[0].x);
+    return yCoord === undefined || xCoord === undefined
+      ? undefined
+      : { yCoord, actualVal: p, index: 0, xCoord };
   }
+  // edge case:2
+  // click was to right of graph, beyond the last point
   if (timestamp >= data[data.length - 1].x) {
-    const p = data[data.length - 1].y;
+    const lastIdx = data.length - 1;
+    const p = data[lastIdx].y;
     const yCoord = yFunc(p);
-    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
+    const xCoord = xFunc(data[lastIdx].x);
+    return yCoord === undefined || xCoord === undefined
+      ? undefined
+      : { yCoord, actualVal: p, index: lastIdx, xCoord };
   }
 
   // Binary search for the two timestamps that straddle our target
-  // could have gone with linear search as well but lol why not better
   let left = 0;
   let right = data.length - 1;
 
@@ -245,21 +200,26 @@ const binarySearch_TimeSeries = (
 
   if (left >= data.length - 1) left = data.length - 2;
 
-  leftIdx = left;
+  const leftIdx = left;
+  const rightIdx = left + 1;
 
+  // get actual data points from data array
   const leftPoint = data[leftIdx];
-  const rightPoint = data[leftIdx + 1];
+  const rightPoint = data[rightIdx];
 
-  // do Linear interpolation here
-  const denominator = rightPoint.x - leftPoint.x;
-  const ratio = denominator !== 0 ? (timestamp - leftPoint.x) / denominator : 0;
-  const yVal = leftPoint.y + ratio * (rightPoint.y - leftPoint.y);
+  // nearest point — pick whichever timestamp is closer
+  const distToLeft = timestamp - leftPoint.x;
+  const distToRight = rightPoint.x - timestamp;
+  const nearestIdx = distToLeft <= distToRight ? leftIdx : rightIdx;
+  const nearestPoint = data[nearestIdx];
 
-  let actualVal = yVal;
-  let yCoord = yFunc(yVal)!;
-  return { yCoord, actualVal };
+  const yCoord = yFunc(nearestPoint.y);
+  const xCoord = xFunc(nearestPoint.x);
+
+  return yCoord === undefined || xCoord === undefined
+    ? undefined
+    : { yCoord, actualVal: nearestPoint.y, index: nearestIdx, xCoord };
 };
-
 // Find the domain (min and max values) from candlestick data
 const FindDomain = (data: Candle[]): [number, number] => {
   let mini = min(data, (d) => d.low) ?? 0;
@@ -314,28 +274,11 @@ function GenerateStringPath(
   };
 }
 
-let LINECHART_PATH_CONFIG: LineChartPathConfig | null = null;
-
 function GetYForX(
   xPos: number,
-  canvasWidth: number,
-  data: LineDataPoint[],
-  canvasHeight: number,
+  pathConfig: LineChartPathResult,
 ): YForXResult | undefined {
-  if (
-    !LINECHART_PATH_CONFIG ||
-    LINECHART_PATH_CONFIG.canvasWidth !== canvasWidth ||
-    LINECHART_PATH_CONFIG.canvasHeight !== canvasHeight ||
-    LINECHART_PATH_CONFIG.data.length !== data.length
-  ) {
-    LINECHART_PATH_CONFIG = {
-      ...GenerateStringPath("curveBumpX", data, canvasWidth, canvasHeight),
-      canvasWidth,
-      canvasHeight,
-    };
-  }
-
-  const { xFunc, yFunc, xRangeMin, xRangeMax, step } = LINECHART_PATH_CONFIG;
+  const { xFunc, yFunc, xRangeMin, xRangeMax, step, data } = pathConfig;
   const clamped = Math.max(xRangeMin, Math.min(xRangeMax, xPos));
 
   return linechartLookup(clamped, data, yFunc, xRangeMin, step);
@@ -351,7 +294,9 @@ function linechartLookup(
   if (step === 0) {
     const p = data[0]?.y ?? 0;
     const yCoord = yFunc(p);
-    return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: p };
+    return yCoord === undefined
+      ? undefined
+      : { yCoord, actualVal: p, index: 0, xCoord: xRangeMin };
   }
 
   // scalePoint is evenly spaced so index = round((x - range_min) / step) — O(1), no loop
@@ -360,21 +305,26 @@ function linechartLookup(
   // thne divide by width of a singel data point
   // immediately returns us current data index where finger is
   const rawIndex = (clampedXPos - xRangeMin) / step;
-  const leftIndex = Math.max(
+
+  // just round off to find closest point
+  const nearestIndex = Math.max(
     0,
-    Math.min(Math.floor(rawIndex), data.length - 2),
+    Math.min(Math.round(rawIndex), data.length - 1),
   );
-  const rightIndex = leftIndex + 1;
 
-  const leftPoint = data[leftIndex];
-  const rightPoint = data[rightIndex];
+  // actual point from data
+  const point = data[nearestIndex];
+  // y coordinate of touch
+  const yCoord = yFunc(point.y);
 
-  // Linear interpolation between the two neighbouring points
-  const ratio = rawIndex - leftIndex; // fractional part — how far between left and right
-  const yVal = leftPoint.y + ratio * (rightPoint.y - leftPoint.y);
+  // x coordinate of touch will be starting point of x axis (xRangeMin)
+  // added with (width of one point * the actual index of point)
+  // thus the calcualtion becomes : starting point + the distance of touch
+  const xCoord = xRangeMin + nearestIndex * step;
 
-  const yCoord = yFunc(yVal);
-  return yCoord === undefined ? undefined : { yCoord: yCoord, actualVal: yVal };
+  return yCoord === undefined
+    ? undefined
+    : { yCoord, actualVal: point.y, index: nearestIndex, xCoord };
 }
 
 export {

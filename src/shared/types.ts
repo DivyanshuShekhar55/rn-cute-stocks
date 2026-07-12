@@ -37,7 +37,12 @@ export type CurveType =
 
 export type SearchAlgorithm = "binarySearchWithInterpolation";
 
+// whenever user touches on chart we must calculate the x, y of touch and the (nearest) data point 
+// actualVal is just the value of 'y' from the clicked data point
+// index is the index of data point in the data array
 export interface YForXResult {
   yCoord: number;
   actualVal: number;
+  index: number;
+  xCoord: number;
 }

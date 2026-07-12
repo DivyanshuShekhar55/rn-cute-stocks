@@ -21,20 +21,20 @@ const LineChart = ({
   height,
   chartData,
   chartContainerStyles,
-  valueTextStyles,
+  onTap,
   curveType = "curveBasis",
   colors = ["#000"],
   cursorComponent,
   curveStrokeWidth = 2,
   curveFill = "stroke",
-  valuePrefix = "",
 }: LineChartProps): React.ReactElement | null => {
   if (!chartData || chartData.length === 0) return null;
 
-  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax, step } = useMemo(
+  const pathConfig = useMemo(
     () => GenerateStringPath(curveType, chartData, width, height),
     [curveType, chartData, width, height],
   );
+  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax } = pathConfig;
 
   const skPath = useMemo(
     () => (strPath ? Skia.Path.MakeFromSVGString(strPath) : null),
@@ -49,43 +49,32 @@ const LineChart = ({
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
-  const [valueText, setValueText] = useState<string>(data[0].y.toFixed(2));
-
-  const lastSetTime = useRef(0);
-
-  const updateY = (clampedX: number): void => {
-    const result = GetYForX(clampedX, width, data, height);
-
-    // if returned position was undefined (due to bad data passed in) cursor won't update
+  const handleTap = (tapX: number, tapY: number): void => {
+    const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
+    const result = GetYForX(clampedX, pathConfig);
     if (!result) return;
+
+    xPos.value = result.xCoord;
     yPos.value = result.yCoord;
 
-    const now = Date.now();
-    if (now - lastSetTime.current > 100) {
-      // ~10 updates/sec — plenty readable for a number
-      lastSetTime.current = now;
-
-      // show only good data :)
-      const isBad = result.actualVal == null || isNaN(result.actualVal);
-      setValueText(isBad ? "-" : result.actualVal.toFixed(2));
-    }
+    onTap?.({
+      tapX,
+      tapY,
+      dataX: data[result.index].x,
+      dataY: result.actualVal,
+      pointX: result.xCoord,
+      pointY: result.yCoord,
+      index: result.index,
+    });
   };
 
-  const pan = Gesture.Pan().onUpdate((evt) => {
-    const clamped = Math.max(xRangeMin, Math.min(xRangeMax, Number(evt.x)));
-    xPos.value = clamped;
-
-    scheduleOnRN(updateY, clamped);
+  const tap = Gesture.Tap().onEnd((evt) => {
+    scheduleOnRN(handleTap, evt.x, evt.y);
   });
 
   return (
     <View style={[styles.container, chartContainerStyles]}>
-      <Text style={[styles.valueText, valueTextStyles]}>
-        {valuePrefix}
-        {valueText}
-      </Text>
-
-      <GestureDetector gesture={pan}>
+      <GestureDetector gesture={tap}>
         <Canvas style={{ width, height }}>
           {cursorComponent ? (
             cursorComponent({ xPos, yPos })

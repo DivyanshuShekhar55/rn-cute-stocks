@@ -26,18 +26,26 @@ export interface LineChartPathConfig extends LineChartPathResult {
   canvasHeight: number;
 }
 
+export interface LineTapInfo {
+  tapX: number; // the actual/raw tap coordinate
+  tapY: number;
+  dataX: string;
+  dataY: number;
+  pointX: number; // snapped pixel x of nearest data point
+  pointY: number; // snapped pixel y of nearest data point
+  index: number;
+}
+
 export interface LineChartProps {
   width: number;
   height: number;
   chartData: LineDataPoint[];
   chartContainerStyles?: StyleProp<ViewStyle>;
-  // label shown above chart — caller decides what to display (price, units, etc.)
-  valueTextStyles?: StyleProp<TextStyle>;
+  onTap: (info: LineTapInfo) => void;
   curveType?: CurveType;
   colors?: string[];
   cursorComponent?: (props: CursorProps) => React.ReactElement;
   curveStrokeWidth?: number;
   curveFill?: "stroke" | "fill";
   // valuePrefix e.g. "$", "€", "kg" — prepended to the displayed value
-  valuePrefix?: string;
 }

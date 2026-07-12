@@ -1,6 +1,7 @@
 import type { StyleProp, ViewStyle, TextStyle } from "react-native";
 import { CursorProps, CurveType, SearchAlgorithm } from "../shared/types";
 import { scaleLinear, scaleTime } from "../math/scale/index"
+import { LineTapInfo } from "../LineChart/types";
 
 // Types
 
@@ -24,6 +25,16 @@ export interface TimerSeriesPathConfig extends TimeSeriesPathResult {
   canvasHeight: number;
 }
 
+export interface TimeChartTapInfo {
+  tapX: number; // the actual/raw tap coordinate
+  tapY: number;
+  dataX: number;
+  dataY: number;
+  pointX: number; // snapped pixel x of nearest data point
+  pointY: number; // snapped pixel y of nearest data point
+  index: number;
+}
+
 /**
  * @param width width for the given chart in px
  * @param height height for the given chart (px)
@@ -41,13 +52,11 @@ export interface TimeSeriesChartProps {
   width: number;
   height: number;
   chartData: TimeSeriesDataPoint[];
+  onTap: (info:TimeChartTapInfo)=>void
   chartContainerStyles?: StyleProp<ViewStyle>;
-  textStyles?: StyleProp<TextStyle>;
   curveType?: CurveType;
   colors?: string[];
   cursorComponent?: (props: CursorProps) => React.ReactElement;
   curveStrokeWidth?: number;
   curveFill?: "stroke" | "fill";
-  ySearch?: SearchAlgorithm;
-  valuePrefix?:string
 }

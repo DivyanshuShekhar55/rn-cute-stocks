@@ -32,22 +32,22 @@ const TimeSeriesChart = ({
   height,
   chartData,
   chartContainerStyles,
-  textStyles,
+  onTap,
   curveType = "curveBasis",
   colors = ["#000"],
   cursorComponent,
   curveStrokeWidth = 2,
   curveFill = "stroke",
-  ySearch = "binarySearchWithInterpolation",
-  valuePrefix = "",
 }: TimeSeriesChartProps): React.ReactElement | null => {
   if (!chartData || chartData.length === 0) return null;
 
   // cache the scales, min, miax, string-path
-  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax } = useMemo(
+  const pathConfig = useMemo(
     () => GenerateStringPath_TimeSeries(curveType, chartData, width, height),
     [curveType, chartData, width, height],
   );
+
+  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax } = pathConfig;
 
   const skPath = useMemo(
     () => (strPath ? Skia.Path.MakeFromSVGString(strPath) : null),
@@ -61,50 +61,32 @@ const TimeSeriesChart = ({
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
-  const [valueText, setValueText] = useState<string>(data[0].y.toFixed(2));
-
-  // we no longer need a shared value + useDerivedValue bridge here.
-  // updateY already runs on the JS thread (it's invoked via scheduleOnRN
-  // from the pan handler below), so setPriceText can just be called
-  // directly — there's no UI-thread value to bridge across anymore.
-  // we still throttle it though: onUpdate can fire many times per second
-  // during a real drag, and calling setPriceText that often re-renders the
-  // whole component that often, which is enough on its own to tank JS FPS.
-  const lastSetTime = useRef(0);
-
-  const updateY = (clampedX: number): void => {
-    const result = GetYForX_TimeSeries(clampedX, width, data, height, ySearch);
-    // if returned position was undefined (due to bad data passed in) cursor won't update
+  const handleTap = (tapX: number, tapY: number): void => {
+    const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
+    const result = GetYForX_TimeSeries(clampedX, pathConfig);
     if (!result) return;
+
+    xPos.value = result.xCoord;
     yPos.value = result.yCoord;
 
-    // TODO :
-    // let the user choose the throttling
-    // lower throttle and more points have an adverse effect on performance
-    const now = Date.now();
-    if (now - lastSetTime.current > 100) {
-      lastSetTime.current = now;
-      // only show good data :)
-      const isBad = result.actualVal == null || isNaN(result.actualVal);
-      setValueText(isBad ? "-" : result.actualVal.toFixed(2));
-    }
+    onTap?.({
+      tapX,
+      tapY,
+      dataX: data[result.index].x,
+      dataY: result.actualVal,
+      pointX: result.xCoord,
+      pointY: result.yCoord,
+      index: result.index,
+    });
   };
 
-  const pan = Gesture.Pan().onUpdate((evt) => {
-    "worklet";
-    const clamped = Math.max(xRangeMin, Math.min(xRangeMax, Number(evt.x)));
-    xPos.value = clamped; // UI thread — instant cursor feedback
-    scheduleOnRN(updateY, clamped); // JS thread — data lookup + throttled state update
+  const tap = Gesture.Tap().onEnd((evt) => {
+    scheduleOnRN(handleTap, evt.x, evt.y);
   });
 
   return (
     <View style={[styles.container, chartContainerStyles]}>
-      <Text style={[styles.priceText, textStyles]}>
-        {valuePrefix}
-        {valueText}
-      </Text>
-
-      <GestureDetector gesture={pan}>
+      <GestureDetector gesture={tap}>
         <Canvas style={{ width, height }}>
           {cursorComponent ? (
             cursorComponent({ xPos, yPos })
