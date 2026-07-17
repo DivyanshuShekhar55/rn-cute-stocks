@@ -22,7 +22,7 @@ const LineChart = ({
   chartData,
   chartContainerStyles,
   onTap,
-  curveType = "curveBasis",
+  curveType = "curveLinear",
   colors = ["#000"],
   cursorComponent,
   curveStrokeWidth = 2,

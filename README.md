@@ -253,7 +253,7 @@ export default function App() {
 | `chartData`            | `LineDataPoint[]`                      | **required**   | Array of `{ x: string, y: number }`                                                  |
 | `onTap`                | `(info: LineTapInfo) => void`          | `undefined`    | Optional callback fired when the chart is tapped, with the nearest data point's info |
 | `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line                                                   |
-| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type (see below)                                                 |
+| `curveType`            | `CurveType`                            | `"curveLinear"` | Curve interpolation type (see below)                                                 |
 | `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                                                    |
 | `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                                                              |
 | `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                                                       |
@@ -313,7 +313,7 @@ export default function App() {
 | `chartData`            | `TimeSeriesDataPoint[]`                | **required**   | Array of `{ x: number, y: number }` where `x` is Unix ms                             |
 | `onTap`                | `(info: TimeChartTapInfo) => void`     | `undefined`    | Optional callback fired when the chart is tapped, with the nearest data point's info |
 | `colors`               | `string[]`                             | `["#000"]`     | Gradient colors for the chart line                                                   |
-| `curveType`            | `CurveType`                            | `"curveBasis"` | Curve interpolation type                                                             |
+| `curveType`            | `CurveType`                            | `"curveLinear"` | Curve interpolation type                                                             |
 | `curveStrokeWidth`     | `number`                               | `2`            | Line stroke width                                                                    |
 | `curveFill`            | `"stroke" \| "fill"`                   | `"stroke"`     | Fill or stroke the path                                                              |
 | `chartContainerStyles` | `ViewStyle`                            | `{}`           | Styles for the outer container                                                       |
