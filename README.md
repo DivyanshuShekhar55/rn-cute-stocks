@@ -17,6 +17,9 @@ A high-performance, delightful charting library for React Native built on Skia a
 - **[CalendarHeatMap](#calendar-heatmap)**: GitHub-style contribution heatmaps for date-based activity with cell selection
 - **[Candlestick Chart](#candlestick-chart)**: Interactive OHLC candlestick charts with pinch zoom and pan
 
+## Utils Available:
+- **[downsampleLTTB](#downsamplelttb)**: A largest triangle three bucket downsampler for data. Can be used with Line and Timeseries charts. 
+
 ## Installation
 
 Install peer dependencies first.
@@ -707,6 +710,48 @@ import type {
 ```
 
 ---
+
+## `downsampleLTTB`
+
+<p align="center">
+  <img src="./assests/images/LTTB_main.png" width=460 height=250 />
+</p>
+
+A standalone data utility for reducing large datasets down to a target number of points while preserving the overall visual shape — peaks and troughs are kept, unlike naive decimation or a moving average. Uses the Largest Triangle Three Buckets (LTTB) algorithm.
+
+This is exported separately from the chart components since downsampling is a data-shaping decision, not something the charts impose. Apply it to your data before passing it to `LineChart` or `TimeSeriesChart`.
+
+```tsx
+import { downsampleLTTB } from "rn-cute-charts";
+
+const downsampled = useMemo(
+  () => downsampleLTTB(rawData, 200),
+  [rawData],
+);
+
+<TimeSeriesChart width={350} height={300} chartData={downsampled} />
+```
+
+**Signature:**
+
+```typescript
+function downsampleLTTB<T extends { x: number; y: number }>(
+  data: T[],
+  targetPoints: number,
+): T[]
+```
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `data` | `T[]` (must have numeric `x` and `y`) | The full-resolution dataset to downsample |
+| `targetPoints` | `number` | Desired output length. If `data.length <= targetPoints`, the original array is returned unchanged |
+
+**Notes:**
+
+- Requires numeric `x`. For `TimeSeriesChart` data, pass real unix millisecond timestamps directly — this preserves correct weighting for unevenly-spaced data (e.g. missed days in a habit log). For `LineChart` data (`x: string`), map to numeric indices before downsampling, then map back to your original labels afterward.
+- Always keeps the first and last point of the original data.
+- Runs in O(n) — safe to call on datasets in the thousands of points without any perceptible delay. Wrap in `useMemo` keyed on your raw data so it only re-runs when the underlying data actually changes, not on every render.
+- If your chart uses `onTap`, note that `index` in the callback refers to the position in the *downsampled* array, not the original. Use `dataX` (the timestamp) to look up the corresponding entry in your original dataset if needed.
 
 ## To Do
 
