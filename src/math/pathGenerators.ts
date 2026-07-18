@@ -63,10 +63,16 @@ function buildYScale(
       return d.y;
     }) ?? 1;
 
+  // we recently encountered an error where if all points are equal or there is just a single data point
+  // chart would crash, this is because the scale would crash as maxVal-minVal = 0
+  // so we add a check against span, if span = 0, make padding = 1px
+  const span = maxY - minY;
+
   //  we don't want to smash the coordinates into the chart's edges
   // we keep some breathing space with 10%
   // add this padding below the min and above the max
-  const yPadding = (maxY - minY) * 0.1;
+  // so we keeep padding as 10% of span
+  const yPadding = span === 0 ? 1 : span * 0.1; // fallback padding keeps domain non-degenerate
 
   const yFunc = scaleLinear()
     .domain([minY - yPadding, maxY + yPadding])
@@ -97,8 +103,12 @@ function GenerateStringPath_TimeSeries(
       return d.x;
     }) ?? 1;
 
+  // guard zero-span domain (single point) and all equal points — fall back to a 1ms-wide window
+  // so scaleTime has a valid non-zero range to map from
+  const xDomainMax = minX === maxX ? maxX + 1 : maxX;
+
   const xFunc = scaleTime()
-    .domain([minX, maxX])
+    .domain([minX, xDomainMax])
     .range([X_PADDING, canvasWidth - X_PADDING]);
   // now we can call like x(someTimestampValue)
   // this is done while plotting the path like line().x((d) => x(d.timestamp))
