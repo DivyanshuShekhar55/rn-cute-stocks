@@ -17,7 +17,7 @@
     "react-native",
     "graphs",
     "charts",
-    "skia",
+    "heatmap",
     "react-native-skia",
     "reanimated",
     "d3",
@@ -25,7 +25,6 @@
     "bar-chart",
     "pie-chart",
     "timeseries",
-    "visualization",
     "mobile"
   ],
   "main": "dist/index.js",
