@@ -39,23 +39,31 @@ const TimeSeriesChart = ({
   curveStrokeWidth = 2,
   curveFill = "stroke",
 }: TimeSeriesChartProps): React.ReactElement | null => {
-  if (!chartData || chartData.length === 0) return null;
+  // hooks must run unconditionally on every render (Rules of Hooks) —
+  // moved the empty-data early return to after all hooks instead of before them
+  const hasData = !!chartData && chartData.length > 0;
 
-  // cache the scales, min, miax, string-path
+  // cache the scales, min, max, string-path
   const pathConfig = useMemo(
-    () => GenerateStringPath_TimeSeries(curveType, chartData, width, height),
-    [curveType, chartData, width, height],
+    () =>
+      hasData
+        ? GenerateStringPath_TimeSeries(curveType, chartData, width, height)
+        : null,
+    [curveType, chartData, width, height, hasData],
   );
-
-  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax } = pathConfig;
 
   const skPath = useMemo(
-    () => (strPath ? Skia.Path.MakeFromSVGString(strPath) : null),
-    [strPath],
+    () =>
+      pathConfig?.strPath
+        ? Skia.Path.MakeFromSVGString(pathConfig.strPath)
+        : null,
+    [pathConfig],
   );
 
-  const initX = xFunc(data[0].x) ?? (0 as number);
-  const initY = yFunc(data[0].y) ?? 0;
+  const initX = hasData
+    ? (pathConfig!.xFunc(pathConfig!.data[0].x) ?? (0 as number))
+    : 0;
+  const initY = hasData ? (pathConfig!.yFunc(pathConfig!.data[0].y) ?? 0) : 0;
 
   // x and y position for cursor
   const xPos = useSharedValue<number>(initX);
@@ -63,7 +71,11 @@ const TimeSeriesChart = ({
 
   // when curve is tapped, call the user's onTap callback
   const handleTap = (tapX: number, tapY: number): void => {
-    const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
+    if (!pathConfig) return;
+    const clampedX = Math.max(
+      pathConfig.xRangeMin,
+      Math.min(pathConfig.xRangeMax, tapX),
+    );
     const result = GetYForX_TimeSeries(clampedX, pathConfig);
     if (!result) return;
 
@@ -73,7 +85,7 @@ const TimeSeriesChart = ({
     onTap?.({
       tapX,
       tapY,
-      dataX: data[result.index].x,
+      dataX: pathConfig.data[result.index].x,
       dataY: result.actualVal,
       pointX: result.xCoord,
       pointY: result.yCoord,
@@ -85,6 +97,8 @@ const TimeSeriesChart = ({
     scheduleOnRN(handleTap, evt.x, evt.y);
   });
 
+  if (!hasData) return null;
+
   return (
     <View style={[styles.container, chartContainerStyles]}>
       <GestureDetector gesture={tap}>
@@ -94,7 +108,6 @@ const TimeSeriesChart = ({
           ) : (
             <Cursor xPos={xPos} yPos={yPos} />
           )}
-
           {skPath && (
             <Path
               path={skPath}
@@ -118,7 +131,6 @@ const TimeSeriesChart = ({
 };
 
 // Cursor
-
 const Cursor = ({ xPos, yPos }: CursorProps): React.ReactElement => (
   <>
     <Circle style="fill" color="#f69d69" cx={xPos} cy={yPos} r={5} />
@@ -144,7 +156,6 @@ const Cursor = ({ xPos, yPos }: CursorProps): React.ReactElement => (
 );
 
 // Styles
-
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
