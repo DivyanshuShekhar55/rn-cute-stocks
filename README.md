@@ -760,6 +760,8 @@ function downsampleLTTB<T extends { x: number; y: number }>(
 - [ ] Real-time data support for candlestick and timeseries charts
 - [ ] stacked bar charts
 - [ ] migrate to gesture handler v3
+- [ ] wrap gesture handlers in memo (check bar charts for example)
+- [ ] data length = 0 edge case in bar chart, is safe by luck, but can clarify it better
 
 ## Contributing
 
