@@ -1,3 +1,10 @@
+/*
+  NOTE FOR CONTRIBUTORS:
+  Please read the LineChart component before reading the TimeSeriesChart component.
+  Both the files share same architecture and almost similar code.
+  The LineChart component is more technically documented and explained.
+ */
+
 import { View, StyleSheet } from "react-native";
 import {
   Canvas,
@@ -11,7 +18,7 @@ import { GenerateStringPath, GetYForX } from "../math/pathGenerators";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { LineChartProps } from "./types";
 import { CursorProps } from "../shared/types";
 
@@ -28,30 +35,59 @@ const LineChart = ({
   curveStrokeWidth = 2,
   curveFill = "stroke",
 }: LineChartProps): React.ReactElement | null => {
-  if (!chartData || chartData.length === 0) return null;
+  // hooks must run unconditionally on every render (Rules of Hooks) —
+  // moved the empty-data early return to after all hooks instead of before them
+  const hasData = !!chartData && chartData.length > 0;
 
   const pathConfig = useMemo(
-    () => GenerateStringPath(curveType, chartData, width, height),
-    [curveType, chartData, width, height],
+    () =>
+      hasData
+        ? GenerateStringPath(curveType, chartData, width, height)
+        : null,
+    [curveType, chartData, width, height, hasData],
   );
-  const { strPath, xFunc, yFunc, data, xRangeMin, xRangeMax } = pathConfig;
 
   const skPath = useMemo(
-    () => (strPath ? Skia.Path.MakeFromSVGString(strPath) : null),
-    [strPath],
+    () =>
+      pathConfig?.strPath
+        ? Skia.Path.MakeFromSVGString(pathConfig.strPath)
+        : null,
+    [pathConfig],
   );
 
   // scalePoint returns number | undefined — the ?? 0 is a safety fallback
   // in practice the first label is always in domain so this won't be 0
-  const initX = xFunc(data[0].x) ?? 0;
-  const initY = yFunc(data[0].y) ?? 0;
+  const initX = hasData
+    ? (pathConfig!.xFunc(pathConfig!.data[0].x) ?? 0)
+    : 0;
+  const initY = hasData
+    ? (pathConfig!.yFunc(pathConfig!.data[0].y) ?? 0)
+    : 0;
 
   const xPos = useSharedValue<number>(initX);
   const yPos = useSharedValue<number>(initY);
 
+  // if data is initially empty -> data comes, say an axios/sqlite fetch in an app
+  //  the cursor would stay fixed at (0, 0) [the default when hasData = false]
+  // so to track it we use this useEffect
+  // re-runs whenever data transition happens as we talked above
+  // also when data changes, because that will ultimately change initX and initY
+  // so if we ever add polling/live data or anything that changes data,
+  // stop these re-renders with a ref maybe
+  useEffect(() => {
+    if (hasData) {
+      xPos.value = initX;
+      yPos.value = initY;
+    }
+  }, [hasData, initX, initY]);
+
   // when curve is tapped, call the user's onTap callback
   const handleTap = (tapX: number, tapY: number): void => {
-    const clampedX = Math.max(xRangeMin, Math.min(xRangeMax, tapX));
+    if (!pathConfig) return;
+    const clampedX = Math.max(
+      pathConfig.xRangeMin,
+      Math.min(pathConfig.xRangeMax, tapX),
+    );
     const result = GetYForX(clampedX, pathConfig);
     if (!result) return;
 
@@ -61,7 +97,7 @@ const LineChart = ({
     onTap?.({
       tapX,
       tapY,
-      dataX: data[result.index].x,
+      dataX: pathConfig.data[result.index].x,
       dataY: result.actualVal,
       pointX: result.xCoord,
       pointY: result.yCoord,
@@ -83,7 +119,7 @@ const LineChart = ({
             <Cursor xPos={xPos} yPos={yPos} />
           )}
 
-          {skPath && (
+          {hasData && skPath && (
             <Path
               path={skPath}
               style={curveFill}
