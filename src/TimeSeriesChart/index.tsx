@@ -80,6 +80,8 @@ const TimeSeriesChart = ({
     if (hasData) {
       xPos.value = initX;
       yPos.value = initY;
+      console.log("console log from 0.3.3-beta-2 ran");
+      console.log(initX, initY, hasData);
     }
   }, [hasData, initX, initY]);
 
